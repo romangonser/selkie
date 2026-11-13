@@ -1,4 +1,4 @@
-# Dress & Me
+# Selkie
 
 Mobile Web-App-Prototyp (Lookbook · Dress Me · Kleiderschrank) nach dem Figma-Design-System.
 

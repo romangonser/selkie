@@ -1,4 +1,4 @@
-# Dress & Me (Mobile Web-App)
+# Selkie (Mobile Web-App)
 
 Prototyp der App "My Style – Dress me": Lookbook · Dress Me · Kleiderschrank. React + Vite + TypeScript.
 

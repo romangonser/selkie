@@ -46,4 +46,4 @@ Hinweise:
 - Im User-Frame `Fonts und Colors (alt)` wurden zwei Texte versehentlich auf Body/Display umgestellt.
 
 ## Code-Projekt
-- Mobile Web-App unter `/Users/roman/Documents/Local-claude/Dress-and-Me` (React + Vite). Tokens in `src/styles/tokens.css`, Komponenten in `src/components`, Kleider-Passregeln in `src/data/garments.ts`. Projekt-Kopie dieses Skills liegt in `.claude/skills/` des Repos – bei Änderungen beide nachführen.
+- Mobile Web-App unter `/Users/roman/Documents/Local-claude/Selkie` (React + Vite). Tokens in `src/styles/tokens.css`, Komponenten in `src/components`, Kleider-Passregeln in `src/data/garments.ts`. Projekt-Kopie dieses Skills liegt in `.claude/skills/` des Repos – bei Änderungen beide nachführen.
