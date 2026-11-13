@@ -1,0 +1,63 @@
+/* Komponenten-Styles – nur Tokens aus tokens.css. */
+
+/* Button */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-s);
+  border-radius: var(--radius-button); border: var(--border-width) solid transparent; white-space: nowrap; }
+.btn--large { padding: 16px var(--space-l); }
+.btn--small { padding: 10px var(--space-m); }
+.btn--primary { background: var(--bg-inverse); color: var(--text-inverse); }
+.btn--accent  { background: var(--bg-accent); color: var(--text-primary); }
+.btn--outline { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
+.btn--primary:active { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
+.btn--accent:active  { background: transparent; color: var(--text-primary); border-color: var(--bg-accent); }
+.btn--outline:active { background: var(--bg-soft); }
+.btn:disabled, .btn:disabled:active { background: transparent; color: var(--state-disabled); border-color: var(--state-disabled); cursor: default; }
+
+/* Chip */
+.chip { flex: none; padding: var(--space-s) var(--space-m); border-radius: var(--radius-pill);
+  border: var(--border-width) solid var(--border-strong); background: transparent; color: var(--text-primary); }
+.chip--active { background: var(--bg-inverse); color: var(--text-inverse); }
+
+/* Icon-Buttons: ohne Kontur – Ausnahme Profil */
+.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--radius-button); }
+.icon-btn--outlined { border: var(--border-width) solid var(--border-strong); }
+
+/* Top Bar */
+.top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-s) var(--space-l); flex: none; }
+
+/* Tab Bar */
+.tab-bar { display: grid; grid-template-columns: repeat(3, 1fr); flex: none; padding-bottom: env(safe-area-inset-bottom); }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 0 18px; opacity: 0.4; }
+.tab + .tab { border-left: var(--border-width) solid var(--border-strong); }
+.tab--active { opacity: 1; }
+.tab__indicator { width: 20px; height: 2px; background: var(--bg-inverse); visibility: hidden; }
+.tab--active .tab__indicator { visibility: visible; }
+
+/* Card / Item */
+.card-item { display: flex; flex-direction: column; gap: var(--space-s); padding: var(--space-s);
+  background: var(--bg-surface); border-radius: var(--radius-card); border: var(--border-width) solid var(--border-subtle); text-align: left; }
+.card-item--selected { border-color: var(--border-strong); }
+.card-item__image { position: relative; aspect-ratio: 152 / 190; background: var(--bg-placeholder); border-radius: 2px; overflow: hidden; display: grid; place-items: center; }
+.card-item__image img { max-width: 80%; max-height: 85%; object-fit: contain; }
+.card-item__fav { position: absolute; top: var(--space-s); right: var(--space-s); width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--bg-surface); border-radius: var(--radius-button); color: var(--text-accent); font-size: 14px; }
+.card-item__meta { display: flex; flex-direction: column; gap: 2px; padding: 0 var(--space-xs) var(--space-xs); }
+
+/* Card / Look */
+.card-look { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-m);
+  padding: var(--space-l); border-radius: var(--radius-card); }
+.card-look--blush { background: var(--bg-soft); color: var(--text-primary); }
+.card-look--ink { background: var(--bg-inverse); color: var(--text-inverse); }
+.card-look__deco { position: absolute; width: 140px; height: 140px; right: -60px; top: -50px; border-radius: 50%; background: var(--bg-accent); }
+.card-look > :not(.card-look__deco) { position: relative; }
+.card-look__title { max-width: 220px; }
+
+/* Garment Row (Swipe-Reihe am Mannequin) */
+.garment-row { position: relative; touch-action: pan-y; user-select: none; }
+.garment-row__tile { position: absolute; top: 0; bottom: 0; left: 50%; width: 200px; transform: translateX(-50%);
+  border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-card); pointer-events: none; }
+.garment-row__track { position: absolute; inset: 0; will-change: transform; }
+.garment-row__track img { position: absolute; pointer-events: none; -webkit-user-drag: none; }
+.garment-row__arrow { position: absolute; top: 50%; width: 28px; height: 28px; margin-top: -14px; display: grid; place-items: center; z-index: 2; }
+.garment-row__arrow--prev { left: 0; }
+.garment-row__arrow--next { right: 0; }

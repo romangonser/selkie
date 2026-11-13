@@ -1,0 +1,8 @@
+{
+  "name": "Clou – My Style",
+  "short_name": "Clou",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F4F1EF",
+  "theme_color": "#F4F1EF"
+}
