@@ -1,4 +1,4 @@
-# Clou – My Style (Mobile Web-App)
+# Dress & Me (Mobile Web-App)
 
 Prototyp der App "My Style – Dress me": Lookbook · Dress Me · Kleiderschrank. React + Vite + TypeScript.
 

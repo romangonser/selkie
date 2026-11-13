@@ -1,4 +1,4 @@
-# Clou – My Style
+# Dress & Me
 
 Mobile Web-App-Prototyp (Lookbook · Dress Me · Kleiderschrank) nach dem Figma-Design-System.
 
