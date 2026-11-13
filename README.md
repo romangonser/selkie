@@ -10,13 +10,19 @@ Filter gelten nur auf der Seite, auf der du sie setzt.
 
 Farben, Icons und die ersten Beispiel-Kleider kommen aus dem Figma-File «Look-book Wireframing», weitere 48 Beispiel-Kleider aus «Mode_Einzelfreisteller». Im Profil lassen sich die Beispiel-Kleider entfernen oder wieder laden.
 
-## Online stellen (GitHub Pages)
+## Online (Vercel)
 
-1. Repository auf GitHub: [github.com/romangonser/selkie](https://github.com/romangonser/selkie). `index.html`, `README.md` und der Ordner `assets` liegen bereits ganz oben im Repository (nicht in einem Unterordner).
-2. «Settings» → «Pages» → bei «Branch» `main` und `/ (root)` wählen → «Save».
-3. Nach 1–2 Minuten läuft die App unter `https://romangonser.github.io/selkie/`.
+Das Repository [github.com/romangonser/selkie](https://github.com/romangonser/selkie) ist mit Vercel verbunden. `index.html`, `README.md` und der Ordner `assets` liegen ganz oben im Repository, es braucht keinen Build-Schritt. Jeder Push nach `main` aktualisiert die Live-URL automatisch; sie steht im Vercel-Dashboard bei diesem Projekt (unter «Domains»).
 
 Auf dem iPhone in Safari öffnen → Teilen → «Zum Home-Bildschirm». Dann sieht Selkie aus wie eine App.
+
+Alternative ohne Vercel: GitHub → «Settings» → «Pages» → bei «Branch» `main` und `/ (root)` wählen → «Save». Die App läuft dann zusätzlich unter `https://romangonser.github.io/selkie/`.
+
+## Wo die Daten liegen: Vercel ist nur das Hosting, keine Datenbank
+
+Vercel liefert lediglich die Dateien aus (wie ein Webserver) – dort wird nichts gespeichert. Ohne weitere Einrichtung speichert Selkie den Schrank jeder Person nur lokal im eigenen Browser (localStorage/IndexedDB): nichts wird geteilt oder gesichert, und bei gelöschten Browserdaten oder auf einem anderen Gerät ist der Schrank leer.
+
+Für einen **geteilten, geräteübergreifenden** Schrank pro Person braucht es **Firebase** (ein separater, kostenloser Google-Dienst für Datenbank + Anmeldung) – aktuell ist das noch nicht eingerichtet (`FIREBASE_FEST` ist `null`).
 
 ## Eigene Konten für mehrere Personen (Firebase)
 
