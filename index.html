@@ -1,21 +1,1921 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#F4F1EF" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Selkie" />
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Platzhalter für CoFo Cinema1909, bis eine Webfont-Lizenz vorliegt -->
-    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400&display=swap" rel="stylesheet" />
-    <title>Selkie</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f1ef" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Selkie" />
+  <title>Selkie</title>
+  <link rel="icon" href="assets/icons/dressme.png" />
+  <link rel="apple-touch-icon" href="assets/icons/dressme.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- CoFo Cinema1909 (Adobe Fonts / Typekit) – echte Display-Schrift; Bodoni Moda bleibt Fallback für Italic -->
+  <link rel="stylesheet" href="https://use.typekit.net/cro0eml.css">
+  <style>
+    /* ---------- Design-Tokens aus dem Figma (Design-System – My Style) ---------- */
+    :root {
+      --ink: #091516;
+      --cream: #f4f1ef;
+      --white: #f4f1ef;        /* bewusst kein reines Weiss: Flächen und Schrift auf Ink sind Creme */
+      --blush-hell: #ebe6e1;    /* helles Sand für Bildflächen */
+      --stone: #e2dbd3;         /* neutrale Fläche statt Rosa (für Frauen und Männer) */
+      --linie: #d5ccc3;         /* feine Konturen */
+      --lavender-hell: #dcdbe6; /* aktive Filter */
+      --rose: #dcb8bb;
+      --ochre: #a18443;
+      --lavender: #8686a2;
+      --red: #c50d10;
+      --green: #2a9b4c;
+
+      --bg-app: var(--cream);
+      --bg-surface: var(--white);
+      --bg-soft: var(--rose);
+      --bg-inverse: var(--ink);
+      --text: var(--ink);
+      --text-inverse: var(--white);
+      --border-subtle: var(--linie);
+      --border-strong: var(--ink);
+
+      --space-s: 8px;
+      --space-m: 16px;
+      --space-l: 24px;
+      --radius: 4px;
+
+      --font-display: "cofo-cinema1909", "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+      --font-ui: "Helvetica Neue", Helvetica, "Inter", Arial, sans-serif;
+      --app-w: 402px;   /* iPhone 17 Pro: 402 × 874 pt */
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: #e9e4e0;
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    .verborgen { display: none !important; }
+
+    /* Typo-Stile */
+    .caption { font-family: var(--font-ui); font-weight: 500; font-size: 11px; line-height: 1.2; letter-spacing: 0.12em; text-transform: uppercase; }
+    .display { font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.1; letter-spacing: -0.01em; margin: 0; }
+    .title { font-family: var(--font-display); font-weight: 400; font-size: 20px; line-height: 1.2; margin: 0; }
+    .title-italic { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 20px; line-height: 1.2; margin: 0; }
+    .label { font-weight: 500; font-size: 15px; line-height: 1; }
+    .klein { font-size: 13px; line-height: 1.4; }
+    .gedaempft { opacity: 0.6; }
+
+    /* ---------- App-Rahmen ---------- */
+    #app {
+      position: relative;
+      margin: 0 auto;
+      height: 100%;
+      height: 100dvh;
+      background: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    @media (min-width: 600px) {
+      body { padding: 24px 0; }
+      #app { box-sizing: content-box; width: var(--app-w); height: 874px; max-height: calc(100dvh - 60px); border: 6px solid var(--ink); border-radius: 56px; }
+    }
+
+    .topbar .ort { font-family: var(--font-display); font-style: italic; font-size: 20px; line-height: 1.1; white-space: nowrap; }
+    .topbar {
+      flex: none;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px;
+      padding: calc(8px + env(safe-area-inset-top)) var(--space-l) 8px;
+      background: transparent; position: relative; z-index: 6;
+    }
+    .icon-btn {
+      position: relative;
+      width: 40px; height: 40px; flex: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border-strong); border-radius: var(--radius);
+      background: var(--bg-app);
+    }
+    .icon-btn:active { background: var(--stone); }
+    .icon-btn .punkt { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--ochre); border: 2px solid var(--bg-app); }
+
+    main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+    .seite { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .seite-inhalt { padding: max(24px, calc(12px + env(safe-area-inset-top))) var(--space-l) 120px; display: flex; flex-direction: column; gap: var(--space-l); }
+
+    /* Icons aus dem Figma als Maske, damit sie jede Farbe annehmen */
+    .ic { display: inline-block; width: 24px; height: 24px; flex: none; background-color: currentColor;
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+    .ic-16 { width: 16px; height: 16px; }
+    .ic-20 { width: 20px; height: 20px; }
+    .ic-32 { width: 32px; height: 32px; }
+    .ic-40 { width: 40px; height: 40px; }
+
+    /* ---------- Tab-Bar ---------- */
+    .tabbar { flex: none; display: flex; justify-content: space-around; align-items: center; padding: 8px var(--space-l) calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-strong); background: var(--stone); }
+    .tab { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; padding: 0; border: 1px solid var(--ink); border-radius: 50%; background: var(--white); color: var(--ink); }
+    .tab .strich { display: none; }
+    .tab.aktiv { background: var(--ink); color: var(--white); }
+    .tab:active { background: var(--cream); }
+
+    /* ---------- Buttons (4px-Ecken, Primary / Accent / Outline) ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-s); padding: 15px 20px; border-radius: var(--radius);
+      border: 1px solid var(--ink); background: var(--ink); color: var(--white); font-weight: 500; font-size: 15px; line-height: 1; white-space: nowrap; }
+    .btn.klein { padding: 10px 16px; }
+    .btn.breit { width: 100%; }
+    .btn:active { background: transparent; color: var(--ink); }
+    .btn.accent { background: var(--ochre); border-color: var(--ochre); }
+    .btn.accent:active { background: transparent; color: var(--ochre); }
+    .btn.outline { background: transparent; color: var(--ink); }
+    .btn.outline:active { background: var(--stone); }
+    .btn.gefahr { background: transparent; color: var(--red); border-color: var(--red); }
+    .btn:disabled { background: transparent; color: var(--lavender); border-color: var(--lavender); cursor: default; }
+    .btn-reihe { display: flex; gap: 12px; }
+    .btn-reihe > .btn { flex: 1; }
+    .link-btn { border: 0; background: none; padding: 4px 0; }
+
+    /* ---------- Chips ---------- */
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--space-l) * -1); padding: 0 var(--space-l); }
+    .chips::-webkit-scrollbar { display: none; }
+    .chips.umbruch { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+    .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px;
+      border: 1px solid var(--border-strong); background: transparent; font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .chip.ohne-icon { padding: 0 14px; }
+    .chip.aktiv { background: var(--ink); color: var(--white); }
+    .chip.wetter.aktiv { background: var(--lavender-hell); color: var(--ink); border-color: var(--lavender); }
+    .btn-tertiaer { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border: 0; background: none; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+    .btn-tertiaer:active { opacity: 0.6; }
+    .tag-form { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .tag-form input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 999px; background: var(--white); font-size: 15px; }
+    .tag-form input:focus { outline: 2px solid var(--ochre); outline-offset: 1px; }
+    .tag-form .icon-btn { width: 36px; height: 36px; }
+    .tag.eigen { border-style: dashed; padding-left: 8px; }
+    .chip-gruppe { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Kategorie-Kacheln mit grossen Icons */
+    .kat-raster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .kat { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--white); }
+    .kat.aktiv { border-color: var(--ink); background: var(--ink); color: var(--white); }
+
+    /* ---------- Karten ---------- */
+    .item-raster { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-m); }
+    .card-item { position: relative; display: flex; flex-direction: column; gap: var(--space-s); padding: var(--space-s); text-align: left;
+      background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+    .card-item.gewaehlt { border-color: var(--ink); }
+    .card-item .bild { position: relative; aspect-ratio: 147 / 190; background: var(--blush-hell); border-radius: 2px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .card-item .bild img { width: 82%; height: 82%; object-fit: contain; }
+    .card-item .meta { display: flex; flex-direction: column; gap: 2px; padding: 0 4px 4px; }
+    .card-item .meta .title { font-size: 19px; }
+    .wetter-mini { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 2px; }
+    .wetter-mini .ic { color: var(--lavender); }
+    img.foto { mix-blend-mode: multiply; }
+
+    .card-look { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: var(--space-m); padding: var(--space-l);
+      background: var(--bg-soft); color: var(--ink); border-radius: var(--radius); text-align: left; border: 0; width: 100%; }
+    .card-look.ink { background: var(--ink); color: var(--white); }
+    .card-look .deko { position: absolute; width: 140px; height: 140px; border-radius: 50%; background: var(--ochre); right: -60px; top: -50px; }
+    .card-look .display { max-width: 240px; position: relative; }
+    .card-look p { margin: 0; position: relative; }
+    .card-look .btn { align-self: flex-start; }
+    .card-look.ink .btn { background: var(--white); color: var(--ink); border-color: var(--white); }
+    .collage { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .collage .stueck { aspect-ratio: 1; background: rgba(244,241,239,0.55); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .card-look.ink .collage .stueck { background: rgba(244,241,239,0.92); }
+    .collage .stueck img { width: 84%; height: 84%; object-fit: contain; }
+    .collage .stueck.foto-gross { grid-column: span 3; aspect-ratio: 4 / 3; }
+    .collage .stueck.foto-gross img { width: 100%; height: 100%; object-fit: cover; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; position: relative; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px 4px 6px; border: 1px solid currentColor; border-radius: 999px; }
+    .tag .ic { width: 14px; height: 14px; }
+
+    .reihen-kopf { display: flex; align-items: baseline; justify-content: space-between; }
+    .leer { text-align: center; padding: 32px 16px; border: 1px dashed var(--border-subtle); border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .leer .ic { opacity: 0.5; }
+
+    .btn.fab { background: var(--ochre); border-color: var(--ochre); position: absolute; width: auto; left: var(--space-l); right: var(--space-l); bottom: var(--space-m); z-index: 5; box-shadow: 0 6px 20px rgba(9,21,22,0.18); }
+
+    /* ---------- Dress Me ---------- */
+    #dressme { display: flex; flex-direction: column; overflow: hidden; }
+    .topbar + .seite-inhalt { padding-top: 0; }
+    .buehne { position: relative; flex: 1; min-height: 0; overflow: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+    /* Deko-Kreise: wandern langsam an wechselnde Orte am Rand und wechseln die Farbe */
+    .buehne .deko { position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0.9;
+      transition: left 9s ease-in-out, top 9s ease-in-out, width 9s ease-in-out, height 9s ease-in-out, background-color 6s ease; }
+    @media (prefers-reduced-motion: reduce) { .buehne .deko { transition: none; } }
+    .acc-reihe { position: absolute; left: 56px; right: 56px; bottom: 6px; height: 54px; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
+    .acc-reihe img { height: 46px; width: 46px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(9,21,22,0.15)); }
+    .acc-reihe .mehr { font-size: 12px; font-weight: 500; }
+    .lage { position: absolute; z-index: 2; object-fit: contain; object-position: center; cursor: pointer; -webkit-user-drag: none;
+      filter: drop-shadow(0 2px 5px rgba(9,21,22,0.12)); }
+    .buehne.bereit .lage { transition: top 0.38s cubic-bezier(.2,.8,.2,1), left 0.38s cubic-bezier(.2,.8,.2,1), width 0.38s cubic-bezier(.2,.8,.2,1), height 0.38s cubic-bezier(.2,.8,.2,1), opacity 0.22s ease; }
+    .lage.raus { opacity: 0; pointer-events: none; z-index: 1; }
+    @media (prefers-reduced-motion: reduce) { .buehne.bereit .lage { transition: none; } .lage.rein-links, .lage.rein-rechts { animation: none; } }
+    .lage.rein-links { animation: reinLinks 0.28s ease; }
+    .lage.rein-rechts { animation: reinRechts 0.28s ease; }
+    @keyframes reinLinks { from { opacity: 0; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes reinRechts { from { opacity: 0; translate: 18px 0; } to { opacity: 1; translate: 0 0; } }
+    .steuer { position: absolute; left: 0; right: 0; height: 0; pointer-events: none; z-index: 5; }
+    .steuer .pfeil { pointer-events: auto; position: absolute; top: 0; transform: translateY(-50%); width: 36px; height: 36px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--bg-app); display: flex; align-items: center; justify-content: center; }
+    .steuer .pfeil.links { left: 10px; }
+    .steuer .pfeil.rechts { right: 10px; }
+    .steuer .typ { pointer-events: auto; position: absolute; top: 26px; width: 36px; height: 36px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
+    .steuer .typ.links { left: 10px; }
+    .steuer .typ.rechts { right: 10px; }
+    .steuer .typ.aktiv { background: var(--ochre); border-color: var(--ochre); color: var(--white); }
+    .steuer .pfeil:active { background: var(--stone); }
+    .leer-buehne { position: absolute; left: 24px; right: 24px; top: 40%; text-align: center; background: rgba(244,241,239,0.92); border: 1px dashed var(--border-subtle); border-radius: var(--radius); padding: 16px; font-size: 13px; z-index: 6; }
+
+    .leiste-unten { position: relative; z-index: 6; flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-app); border-top: 1px solid var(--linie); }
+    .leiste-unten .btn.accent { padding: 10px 16px; }
+    .segment { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+    .segment .caption { font-size: 10px; }
+    .segment-knoepfe { display: flex; border: 1px solid var(--ink); border-radius: var(--radius); overflow: hidden; }
+    .segment-knoepfe button { width: 34px; height: 34px; border: 0; background: transparent; font-weight: 500; font-size: 14px; }
+    .segment-knoepfe button + button { border-left: 1px solid var(--ink); }
+    .segment-knoepfe button.aktiv { background: var(--ink); color: var(--white); }
+    .leiste-unten .icon-btn { width: 36px; height: 36px; }
+    .leiste-unten .icon-btn .anzahl { position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--ochre); color: var(--white); font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; }
+    .leiste-unten .btn { padding: 10px 14px; }
+
+    /* ---------- Bottom-Sheet ---------- */
+    .sheet-hg { position: fixed; inset: 0; z-index: 50; background: rgba(9,21,22,0.35); display: flex; align-items: flex-end; justify-content: center; animation: hgEin 0.2s ease; }
+    .sheet { width: 100%; max-width: 440px; max-height: 92dvh; overflow-y: auto; background: var(--bg-app); border-radius: 14px 14px 0 0; border-top: 1px solid var(--ink);
+      padding: 10px var(--space-l) calc(24px + env(safe-area-inset-bottom)); animation: sheetEin 0.28s cubic-bezier(.2,.8,.2,1); }
+    .sheet-griff { width: 36px; height: 4px; border-radius: 2px; background: var(--linie); margin: 0 auto 12px; }
+    .sheet-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .sheet-kopf .display { font-size: 30px; }
+    .sheet-inhalt { display: flex; flex-direction: column; gap: 20px; }
+    @keyframes sheetEin { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes hgEin { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ---------- Formulare ---------- */
+    .feld { display: flex; flex-direction: column; gap: 6px; }
+    .feld input, .feld textarea, .feld select { width: 100%; padding: 13px 14px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--white); font-size: 16px; }
+    .feld textarea { min-height: 76px; resize: vertical; }
+    .feld input:focus, .feld textarea:focus { outline: 2px solid var(--ochre); outline-offset: 1px; }
+    .fehler-text { color: var(--red); font-size: 13px; margin: 0; }
+    .foto-wahl { position: relative; aspect-ratio: 4 / 3; border: 1px dashed var(--ink); border-radius: var(--radius); background: var(--blush-hell); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; overflow: hidden; }
+    .foto-wahl img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; background: var(--blush-hell); }
+    .foto-wahl .btn-reihe { position: relative; z-index: 2; }
+    .foto-wahl > .klein { padding: 0 16px; text-align: center; }
+    .foto-wahl.hat-bild .btn-reihe { position: absolute; bottom: 10px; right: 10px; }
+    .detail-bild { aspect-ratio: 1; background: var(--blush-hell); border: 1px solid var(--border-subtle); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+    .detail-bild img { max-width: 80%; max-height: 80%; object-fit: contain; }
+    .liste-zeile { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+    .figur-wahl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .figur { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--white); }
+    .figur img { height: 120px; }
+    .figur.aktiv { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .mini-raster { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .mini { position: relative; aspect-ratio: 1; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--blush-hell); display: flex; align-items: center; justify-content: center; padding: 0; }
+    .mini img { width: 78%; height: 78%; object-fit: contain; }
+    .mini.aktiv { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .mini.aktiv::after { content: "✓"; position: absolute; top: 3px; right: 5px; font-size: 12px; font-weight: 600; }
+    .schritte { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+    pre.code { margin: 0; padding: 12px; background: var(--white); border: 1px solid var(--border-subtle); border-radius: var(--radius); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+
+    /* ---------- Start / Anmeldung ---------- */
+    .start { position: absolute; inset: 0; z-index: 30; background: var(--bg-app); overflow-y: auto; display: flex; flex-direction: column; }
+    .start-kopf { padding: calc(48px + env(safe-area-inset-top)) var(--space-l) 0; }
+    .start .masthead { font-family: var(--font-display); font-size: 74px; line-height: 0.86; letter-spacing: -0.03em; margin: 12px 0 0; }
+    .start .masthead em { font-style: italic; display: block; padding-left: 0.9em; }
+    .start .unterzeile { font-family: var(--font-display); font-style: italic; font-size: 17px; margin: 18px 0 0; max-width: 300px; }
+    .start-figuren { display: flex; justify-content: center; gap: 0; height: 210px; margin: 18px 0 0; position: relative; }
+    .start-figuren img { height: 100%; }
+    .start-figuren::after { content: ""; position: absolute; width: 150px; height: 150px; border-radius: 50%; background: var(--ochre); right: -40px; top: -20px; z-index: -1; }
+    .start-figuren { z-index: 0; isolation: isolate; }
+    .start-form { padding: 20px var(--space-l) calc(32px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; background: var(--stone); border-top: 1px solid var(--ink); flex: 1; }
+    .umschalter { display: flex; border: 1px solid var(--ink); border-radius: var(--radius); overflow: hidden; }
+    .umschalter button { flex: 1; padding: 10px; border: 0; background: transparent; font-weight: 500; font-size: 14px; }
+    .umschalter button.aktiv { background: var(--ink); color: var(--white); }
+
+    .toast { position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%); z-index: 80; background: var(--ink); color: var(--white); padding: 12px 18px; border-radius: var(--radius); font-size: 14px; max-width: calc(100% - 48px); text-align: center; animation: hgEin 0.2s ease; }
+    .lade { display: flex; align-items: center; justify-content: center; height: 100%; font-family: var(--font-display); font-style: italic; font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="lade">Selkie …</div></div>
+
+  <script src="assets/vorlagen.js"></script>
+  <script>
+    "use strict";
+
+    // =====================================================================
+    // Firebase-Zugang
+    // Sobald Firebase eingerichtet ist, die Werte hier eintragen (siehe README.md).
+    // Dann fragt die App auf jedem Gerät nur noch nach E-Mail und Passwort.
+    // Beispiel:
+    // const FIREBASE_FEST = { dbUrl: "https://selkie-xyz-default-rtdb.europe-west1.firebasedatabase.app", apiKey: "AIza..." };
+    // =====================================================================
+    const FIREBASE_FEST = null;
+
+    // ---------- Konstanten ----------
+    const GERAET_KEY = "selkie.geraet.v1";
+    const DATEN_KEY = "selkie.daten.v1";      // Zwischenspeicher (ohne Fotos)
+    const AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts";
+    const TOKEN_URL = "https://securetoken.googleapis.com/v1/token";
+
+    const KATEGORIEN = [
+      { id: "shirt", name: "Shirt", icon: "shirt" },
+      { id: "pullover", name: "Pullover", icon: "pullover" },
+      { id: "jacke", name: "Jacke", icon: "jacke" },
+      { id: "hose", name: "Hose", icon: "hose" },
+      { id: "kurze_hose", name: "Kurze Hose", icon: "kurze_hose" },
+      { id: "rock", name: "Rock", icon: "rock" },
+      { id: "kleid", name: "Kleid", icon: "kleid" },
+      { id: "schuhe", name: "Schuhe", icon: "schuhe" },
+      { id: "accessoire", name: "Accessoire", icon: "accessoire" },
+    ];
+    const KAT = Object.fromEntries(KATEGORIEN.map((k) => [k.id, k]));
+    const WETTER = [{ id: "sonne", name: "Sonne" }, { id: "regen", name: "Regen" }];
+    const TEMPERATUR = [{ id: "warm", name: "Warm" }, { id: "kalt", name: "Kalt" }];
+    const GRUPPEN = {
+      kleid: { titel: "Kleid", kategorien: ["kleid"] },
+      jacke: { titel: "Jacke", kategorien: ["jacke"] },
+      oben: { titel: "Oberteil", kategorien: ["shirt", "pullover"] },
+      unten: { titel: "Hose / Rock", kategorien: ["hose", "kurze_hose", "rock"] },
+      schuhe: { titel: "Schuhe", kategorien: ["schuhe"] },
+    };
+
+    // ---------- Zustand ----------
+    let geraet = geraetLaden();
+    let daten = leereDaten();
+    const ui = {
+      seite: "dressme",
+      filter: { wetter: [], temperatur: [], tags: [] },
+      schrankKat: "alle",
+      auswahl: { kleid: null, jacke: null, oben: null, unten: null, schuhe: null, acc: [] },
+      obenTyp: "alle",
+    };
+    const bildCache = new Map();
+
+    function leereDaten() {
+      return { profil: { name: "", figur: "frau", vorlagenGeladen: false }, teile: {}, outfits: {}, eigeneTags: {} };
+    }
+
+    function geraetLaden() {
+      const leer = { modus: null, konto: { dbUrl: "", apiKey: "", email: "", uid: "", idToken: "", refreshToken: "", ablauf: 0 } };
+      try {
+        const g = JSON.parse(localStorage.getItem(GERAET_KEY) || "null");
+        if (g && g.konto) return Object.assign(leer, g, { konto: Object.assign(leer.konto, g.konto) });
+      } catch (f) { /* nichts gespeichert */ }
+      return leer;
+    }
+    function geraetSpeichern() {
+      try { localStorage.setItem(GERAET_KEY, JSON.stringify(geraet)); } catch (f) { /* Speicher voll */ }
+    }
+    if (FIREBASE_FEST) { geraet.konto.dbUrl = FIREBASE_FEST.dbUrl; geraet.konto.apiKey = FIREBASE_FEST.apiKey; }
+
+    // ---------- Hilfsfunktionen ----------
+    function el(tag, klasse, text) {
+      const e = document.createElement(tag);
+      if (klasse) e.className = klasse;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    function icon(name, extra) {
+      const i = el("span", "ic" + (extra ? " " + extra : ""));
+      i.style.setProperty("--src", "url('assets/icons/" + name + ".png')");
+      i.setAttribute("aria-hidden", "true");
+      return i;
+    }
+    function svgIcon(pfad, groesse) {
+      const s = groesse || 24;
+      const w = document.createElement("span");
+      w.innerHTML = '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + pfad + "</svg>";
+      return w.firstChild;
+    }
+    const SVG_FILTER = '<path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="#f4f1ef"/><circle cx="16" cy="12" r="2" fill="#f4f1ef"/><circle cx="10" cy="18" r="2" fill="#f4f1ef"/>';
+    const SVG_ZUFALL = '<path d="M3 7h3.5c2 0 3.2 1 4.3 2.7l2.4 4.6c1.1 1.7 2.3 2.7 4.3 2.7H21"/><path d="M3 17h3.5c1.4 0 2.4-.5 3.3-1.4M13.9 8.4c.9-.9 1.9-1.4 3.3-1.4H21"/><path d="M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/>';
+    function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    function liste(obj) { return Object.entries(obj || {}).map(([k, v]) => Object.assign({ id: k }, v)); }
+    function toast(text) {
+      document.querySelectorAll(".toast").forEach((t) => t.remove());
+      const t = el("div", "toast", text);
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2600);
+    }
+    function datumText(iso) {
+      if (!iso) return "";
+      const d = new Date(iso + "T12:00:00");
+      return d.toLocaleDateString("de-CH", { day: "numeric", month: "long", year: "numeric" });
+    }
+    function heute() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+    function gruss() {
+      const h = new Date().getHours();
+      return h < 11 ? "Guten Morgen" : h < 17 ? "Guten Tag" : "Guten Abend";
+    }
+    function zufall(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // ---------- Fotos: verkleinern, speichern, laden ----------
+    // Fotos werden verkleinert (max. 800 px) und getrennt von den übrigen Daten gespeichert.
+    const idb = (() => {
+      let db = null;
+      function oeffnen() {
+        if (db) return Promise.resolve(db);
+        return new Promise((ok, fehl) => {
+          try {
+            const r = indexedDB.open("selkie-bilder", 1);
+            r.onupgradeneeded = () => r.result.createObjectStore("bilder");
+            r.onsuccess = () => { db = r.result; ok(db); };
+            r.onerror = () => fehl(r.error);
+          } catch (f) { fehl(f); }
+        });
+      }
+      async function tx(modus, fn) {
+        const d = await oeffnen();
+        return new Promise((ok, fehl) => {
+          const t = d.transaction("bilder", modus);
+          const req = fn(t.objectStore("bilder"));
+          t.oncomplete = () => ok(req && req.result);
+          t.onerror = () => fehl(t.error);
+        });
+      }
+      return {
+        get: (k) => tx("readonly", (s) => s.get(k)).catch(() => null),
+        put: (k, v) => tx("readwrite", (s) => s.put(v, k)).catch(() => null),
+        del: (k) => tx("readwrite", (s) => s.delete(k)).catch(() => null),
+      };
+    })();
+
+    function fotoLaden(datei) {
+      return new Promise((ok, fehl) => {
+        const url = URL.createObjectURL(datei);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); ok(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); fehl(new Error("Das Foto konnte nicht gelesen werden.")); };
+        img.src = url;
+      });
+    }
+    function leinwand(img, max, weiss) {
+      const f = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.width * f));
+      c.height = Math.max(1, Math.round(img.height * f));
+      const ctx = c.getContext("2d");
+      if (weiss) { ctx.fillStyle = "#f4f1ef"; ctx.fillRect(0, 0, c.width, c.height); }
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      return c;
+    }
+    function alsDataUrl(c, mitTransparenz) {
+      let d = c.toDataURL("image/webp", 0.8);
+      if (d.indexOf("data:image/webp") === 0) return d;
+      return mitTransparenz ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", 0.82);
+    }
+    async function fotoVerkleinern(datei, max) {
+      return alsDataUrl(leinwand(await fotoLaden(datei), max || 800, true), false);
+    }
+    // Hintergrund entfernen: Alles, was vom Rand her ähnlich gefärbt ist wie der Rand, wird durchsichtig.
+    // Funktioniert gut bei Fotos vor einer hellen, einfarbigen Fläche (Bett, Wand, Boden).
+    function hintergrundEntfernen(c) {
+      const w = c.width, h = c.height, ctx = c.getContext("2d");
+      const bild = ctx.getImageData(0, 0, w, h), p = bild.data;
+      let r = 0, g = 0, b = 0, n = 0;
+      const rand = [];
+      for (let x = 0; x < w; x++) { rand.push(x, x + (h - 1) * w); }
+      for (let y = 0; y < h; y++) { rand.push(y * w, y * w + w - 1); }
+      rand.forEach((i) => { r += p[i * 4]; g += p[i * 4 + 1]; b += p[i * 4 + 2]; n++; });
+      r /= n; g /= n; b /= n;
+      const tol = 52 * 52;
+      const nah = (i) => { const dr = p[i * 4] - r, dg = p[i * 4 + 1] - g, db = p[i * 4 + 2] - b; return dr * dr + dg * dg + db * db < tol; };
+      const weg = new Uint8Array(w * h);
+      const stapel = [];
+      rand.forEach((i) => { if (!weg[i] && nah(i)) { weg[i] = 1; stapel.push(i); } });
+      while (stapel.length) {
+        const i = stapel.pop(), x = i % w;
+        const nb = [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w];
+        for (const j of nb) if (j >= 0 && j < w * h && !weg[j] && nah(j)) { weg[j] = 1; stapel.push(j); }
+      }
+      let anzahl = 0;
+      for (let i = 0; i < w * h; i++) anzahl += weg[i];
+      const anteil = anzahl / (w * h);
+      if (anteil < 0.08 || anteil > 0.95) return false;   // kein klarer Hintergrund erkennbar
+      for (let i = 0; i < w * h; i++) {
+        if (weg[i]) { p[i * 4 + 3] = 0; continue; }
+        const x = i % w;
+        if ((x > 0 && weg[i - 1]) || (x < w - 1 && weg[i + 1]) || (i >= w && weg[i - w]) || (i < w * (h - 1) && weg[i + w])) p[i * 4 + 3] = 150;
+      }
+      ctx.putImageData(bild, 0, 0);
+      // auf den Inhalt zuschneiden
+      let x0 = w, y0 = h, x1 = 0, y1 = 0;
+      for (let i = 0; i < w * h; i++) if (!weg[i]) { const x = i % w, y = (i / w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      const pad = 8;
+      x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+      const z = document.createElement("canvas");
+      z.width = x1 - x0 + 1; z.height = y1 - y0 + 1;
+      z.getContext("2d").drawImage(c, x0, y0, z.width, z.height, 0, 0, z.width, z.height);
+      return z;
+    }
+    async function fotoFuerTeil(datei) {
+      const img = await fotoLaden(datei);
+      const normal = alsDataUrl(leinwand(img, 800, true), false);
+      let frei = null;
+      try {
+        const z = hintergrundEntfernen(leinwand(img, 700, false));
+        if (z) frei = alsDataUrl(z, true);
+      } catch (f) { frei = null; }
+      return { normal, frei };
+    }
+
+    async function bildSpeichern(bildId, dataUrl) {
+      bildCache.set(bildId, dataUrl);
+      await idb.put(bildId, dataUrl);
+      if (cloudAktiv()) await dbAnfrage("PUT", "bilder/" + bildId, dataUrl);
+    }
+    async function bildLoeschen(bildId) {
+      bildCache.delete(bildId);
+      await idb.del(bildId);
+      if (cloudAktiv()) dbAnfrage("DELETE", "bilder/" + bildId).catch(() => {});
+    }
+    async function bildHolen(bildId) {
+      if (bildCache.has(bildId)) return bildCache.get(bildId);
+      let d = await idb.get(bildId);
+      if (!d && cloudAktiv()) {
+        try { d = await dbAnfrage("GET", "bilder/" + bildId); } catch (f) { d = null; }
+        if (d) idb.put(bildId, d);
+      }
+      if (d) bildCache.set(bildId, d);
+      return d;
+    }
+    // Ein <img> für ein Teil oder Outfit-Foto. Vorlagen kommen direkt aus /assets.
+    function bildElement(quelle, klasse) {
+      const img = el("img", klasse || "");
+      img.alt = "";
+      img.decoding = "async";
+      if (!quelle) return img;
+      if (quelle.indexOf("assets/") === 0) {
+        img.src = quelle;
+      } else if (quelle.indexOf("bild:") === 0) {
+        img.classList.add("foto");
+        const bid = quelle.slice(5);
+        if (bildCache.has(bid)) img.src = bildCache.get(bid);
+        else bildHolen(bid).then((d) => { if (d) img.src = d; });
+      }
+      return img;
+    }
+
+    function teilBild(t) {
+      const img = bildElement(t.bild);
+      if (t.freigestellt) img.classList.remove("foto");
+      return img;
+    }
+
+    // ---------- Firebase: Anmeldung ----------
+    function cloudAktiv() { return geraet.modus === "cloud" && !!geraet.konto.refreshToken; }
+
+    function authFehler(code) {
+      const c = String(code || "");
+      if (/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(c)) return "E-Mail oder Passwort stimmt nicht.";
+      if (/EMAIL_EXISTS/.test(c)) return "Mit dieser E-Mail gibt es schon ein Konto. Bitte melde dich an.";
+      if (/WEAK_PASSWORD/.test(c)) return "Das Passwort braucht mindestens 6 Zeichen.";
+      if (/INVALID_EMAIL/.test(c)) return "Die E-Mail-Adresse ist ungültig.";
+      if (/TOO_MANY_ATTEMPTS/.test(c)) return "Zu viele Versuche. Bitte warte einen Moment.";
+      if (/ADMIN_ONLY_OPERATION|OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED/.test(c)) return "Neue Konten sind gerade nicht erlaubt oder E-Mail/Passwort ist in Firebase nicht eingeschaltet.";
+      if (/API_KEY/.test(c)) return "Der Web-API-Schlüssel stimmt nicht.";
+      if (/TOKEN_EXPIRED|INVALID_REFRESH_TOKEN|USER_NOT_FOUND/.test(c)) return "Die Anmeldung ist abgelaufen. Bitte melde dich neu an.";
+      return "Anmeldung nicht möglich" + (c ? " (" + c + ")" : "") + ".";
+    }
+    async function authAnfrage(aktion, body) {
+      let antwort;
+      try {
+        antwort = await fetch(AUTH_URL + ":" + aktion + "?key=" + encodeURIComponent(geraet.konto.apiKey), {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+        });
+      } catch (f) { throw new Error("Keine Verbindung zum Internet."); }
+      let json = {};
+      try { json = await antwort.json(); } catch (f) { /* leer */ }
+      if (!antwort.ok) throw new Error(authFehler(json.error && json.error.message));
+      return json;
+    }
+    function sitzungUebernehmen(a, email) {
+      const k = geraet.konto;
+      k.email = email; k.uid = a.localId; k.idToken = a.idToken; k.refreshToken = a.refreshToken;
+      k.ablauf = Date.now() + Number(a.expiresIn) * 1000;
+      geraet.modus = "cloud";
+      geraetSpeichern();
+    }
+    async function anmelden(email, passwort) {
+      email = email.trim().toLowerCase();
+      sitzungUebernehmen(await authAnfrage("signInWithPassword", { email, password: passwort, returnSecureToken: true }), email);
+    }
+    async function registrieren(email, passwort) {
+      email = email.trim().toLowerCase();
+      sitzungUebernehmen(await authAnfrage("signUp", { email, password: passwort, returnSecureToken: true }), email);
+    }
+    async function tokenGueltig() {
+      const k = geraet.konto;
+      if (k.idToken && Date.now() < k.ablauf - 60000) return k.idToken;
+      let antwort;
+      try {
+        antwort = await fetch(TOKEN_URL + "?key=" + encodeURIComponent(k.apiKey), {
+          method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(k.refreshToken),
+        });
+      } catch (f) { throw new Error("Keine Verbindung zum Internet."); }
+      const json = await antwort.json().catch(() => ({}));
+      if (!antwort.ok) {
+        const code = json.error && json.error.message;
+        if (/TOKEN_EXPIRED|INVALID_REFRESH_TOKEN|USER_NOT_FOUND|USER_DISABLED/.test(String(code))) { abmelden(true); }
+        throw new Error(authFehler(code));
+      }
+      k.idToken = json.id_token; k.refreshToken = json.refresh_token || k.refreshToken;
+      k.ablauf = Date.now() + Number(json.expires_in) * 1000;
+      geraetSpeichern();
+      return k.idToken;
+    }
+    function abmelden(stumm) {
+      geraet.konto.idToken = ""; geraet.konto.refreshToken = ""; geraet.konto.uid = ""; geraet.konto.ablauf = 0;
+      geraet.modus = null;
+      geraetSpeichern();
+      try { localStorage.removeItem(DATEN_KEY); indexedDB.deleteDatabase("selkie-bilder"); } catch (f) { /* egal */ }
+      if (!stumm) location.reload();
+    }
+
+    // ---------- Firebase: Realtime Database (jede Person hat ihren eigenen Bereich) ----------
+    async function dbAnfrage(methode, pfad, wert) {
+      const token = await tokenGueltig();
+      const basis = geraet.konto.dbUrl.replace(/\/+$/, "");
+      const url = basis + "/selkie/" + geraet.konto.uid + "/" + pfad + ".json?auth=" + encodeURIComponent(token);
+      const opt = { method: methode };
+      if (wert !== undefined) { opt.body = JSON.stringify(wert); opt.headers = { "Content-Type": "application/json" }; }
+      let antwort;
+      try { antwort = await fetch(url, opt); } catch (f) { throw new Error("Keine Verbindung zum Internet."); }
+      if (antwort.status === 401 || antwort.status === 403) throw new Error("Kein Zugriff auf die Datenbank. Sind die Regeln in Firebase eingetragen?");
+      if (!antwort.ok) throw new Error("Speichern nicht möglich (" + antwort.status + ").");
+      return antwort.json();
+    }
+
+    // Speichern: lokal sofort, in der Cloud im Hintergrund
+    function lokalSichern() {
+      try { localStorage.setItem(DATEN_KEY, JSON.stringify(daten)); } catch (f) { /* voll */ }
+    }
+    function speichern(pfad, wert) {
+      lokalSichern();
+      if (!cloudAktiv()) return Promise.resolve();
+      return dbAnfrage(wert === null ? "DELETE" : "PUT", "daten/" + pfad, wert === null ? undefined : wert)
+        .catch((f) => toast(f.message));
+    }
+
+    async function datenLaden() {
+      try {
+        const z = JSON.parse(localStorage.getItem(DATEN_KEY) || "null");
+        if (z) daten = Object.assign(leereDaten(), z);
+      } catch (f) { /* nichts */ }
+      if (cloudAktiv()) {
+        try {
+          const d = await dbAnfrage("GET", "daten");
+          daten = Object.assign(leereDaten(), d || {});
+          daten.profil = Object.assign(leereDaten().profil, daten.profil || {});
+          daten.teile = daten.teile || {};
+          daten.outfits = daten.outfits || {};
+          lokalSichern();
+        } catch (f) { toast(f.message); }
+      }
+      if (!daten.profil.vorlagenGeladen && liste(daten.teile).length === 0) vorlagenLaden(true);
+      else if (daten.profil.vorlagenGeladen && !daten.profil.vorlagenEntfernt && (daten.profil.vorlagenStand || 1) < VORLAGEN_STAND) {
+        vorlagenLaden(true, (daten.profil.vorlagenStand || 1) + 1);
+      }
+    }
+
+    const VORLAGEN_STAND = Math.max.apply(null, (window.VORLAGEN || [{ stand: 1 }]).map((v) => v.stand || 1));
+    // abStand: nur Beispiel-Kleider ab diesem Stand hinzufügen (für Nachlieferungen)
+    function vorlagenLaden(still, abStand) {
+      const jetzt = Date.now();
+      let neu = 0;
+      (window.VORLAGEN || []).forEach((v, i) => {
+        const tid = "v-" + v.id;
+        if (daten.teile[tid] || (abStand && (v.stand || 1) < abStand)) return;
+        const teil = { name: v.name, kategorie: v.kategorie, wetter: v.wetter, temperatur: v.temperatur, bild: v.bild, vorlage: true, erstellt: jetzt - i + (v.stand || 1) * 100000 };
+        if (v.masse) teil.masse = v.masse;
+        daten.teile[tid] = teil;
+        neu++;
+      });
+      daten.profil.vorlagenGeladen = true;
+      daten.profil.vorlagenStand = VORLAGEN_STAND;
+      delete daten.profil.vorlagenEntfernt;
+      if (abStand && neu) toast(neu + " neue Beispiel-Kleider sind jetzt in deinem Schrank.");
+      lokalSichern();
+      if (cloudAktiv()) {
+        dbAnfrage("PUT", "daten", daten).catch((f) => toast(f.message));
+      }
+      if (!still) toast("Die Beispiel-Kleider sind jetzt in deinem Schrank.");
+    }
+    function vorlagenEntfernen() {
+      liste(daten.teile).filter((t) => t.vorlage).forEach((t) => delete daten.teile[t.id]);
+      daten.profil.vorlagenEntfernt = true;
+      daten.profil.vorlagenStand = VORLAGEN_STAND;
+      if (cloudAktiv()) speichern("profil", daten.profil);
+      lokalSichern();
+      if (cloudAktiv()) dbAnfrage("PUT", "daten/teile", daten.teile).catch((f) => toast(f.message));
+      toast("Beispiel-Kleider entfernt.");
+    }
+
+    // ---------- Filter ----------
+    function passtFilter(teil, filter) {
+      const f = filter || ui.filter;
+      if (f.wetter.length && !f.wetter.some((w) => (teil.wetter || []).includes(w))) return false;
+      if (f.temperatur.length && !f.temperatur.some((w) => (teil.temperatur || []).includes(w))) return false;
+      if (f.tags && f.tags.length && !f.tags.some((w) => (teil.tags || []).includes(w))) return false;
+      return true;
+    }
+    function filterAktiv() { return ui.filter.wetter.length + ui.filter.temperatur.length + (ui.filter.tags || []).length > 0; }
+
+    // ---------- Eigene Tags (z. B. «Büro», «Party», «Ferien») ----------
+    function eigeneTags() { return liste(daten.eigeneTags).sort((a, b) => a.name.localeCompare(b.name, "de")); }
+    function tagName(tid) { return daten.eigeneTags && daten.eigeneTags[tid] ? daten.eigeneTags[tid].name : null; }
+    function tagPills(obj) {
+      const box = el("div", "tags");
+      (obj.wetter || []).concat(obj.temperatur || []).forEach((w) => {
+        const tg = el("span", "tag");
+        tg.append(icon(w), document.createTextNode(w));
+        box.appendChild(tg);
+      });
+      (obj.tags || []).forEach((x) => { const n = tagName(x); if (n) box.appendChild(el("span", "tag eigen", n)); });
+      return box;
+    }
+    // Auswahl eigener Tags mit tertiärem «+ Neuer Tag»-Knopf zum Erstellen
+    function tagAuswahl(gewaehlt, onChange) {
+      let wert = (gewaehlt || []).filter((x) => tagName(x));
+      const box = el("div", "chips umbruch");
+      function zeichnen(formOffen) {
+        box.innerHTML = "";
+        eigeneTags().forEach((t) => {
+          const an = wert.includes(t.id);
+          const c = el("button", "chip ohne-icon" + (an ? " aktiv" : ""), t.name);
+          c.type = "button";
+          c.onclick = () => { wert = an ? wert.filter((x) => x !== t.id) : wert.concat(t.id); onChange(wert); zeichnen(); };
+          box.appendChild(c);
+        });
+        if (!formOffen) {
+          const plus = el("button", "btn-tertiaer");
+          plus.type = "button";
+          plus.append(icon("plus", "ic-16"), document.createTextNode("Neuer Tag"));
+          plus.onclick = () => zeichnen(true);
+          box.appendChild(plus);
+          return;
+        }
+        const form = el("div", "tag-form");
+        const eingabe = el("input");
+        eingabe.placeholder = "z. B. Büro";
+        eingabe.maxLength = 24;
+        eingabe.setAttribute("aria-label", "Name des neuen Tags");
+        const ok = el("button", "btn klein", "Hinzufügen");
+        ok.type = "button";
+        const abbrechen = el("button", "icon-btn");
+        abbrechen.type = "button";
+        abbrechen.setAttribute("aria-label", "Abbrechen");
+        abbrechen.appendChild(icon("x", "ic-16"));
+        abbrechen.onclick = () => zeichnen();
+        ok.onclick = () => {
+          const name = eingabe.value.trim();
+          if (!name) { eingabe.focus(); return; }
+          const vorhanden = eigeneTags().find((t) => t.name.toLowerCase() === name.toLowerCase());
+          let tid = vorhanden ? vorhanden.id : null;
+          if (!tid) {
+            tid = id();
+            daten.eigeneTags = daten.eigeneTags || {};
+            daten.eigeneTags[tid] = { name };
+            speichern("eigeneTags/" + tid, { name });
+          }
+          if (!wert.includes(tid)) wert = wert.concat(tid);
+          onChange(wert);
+          zeichnen();
+        };
+        eingabe.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } });
+        form.append(eingabe, ok, abbrechen);
+        box.appendChild(form);
+        setTimeout(() => eingabe.focus(), 0);
+      }
+      zeichnen();
+      return box;
+    }
+    function teileSortiert() {
+      return liste(daten.teile).sort((a, b) => (b.erstellt || 0) - (a.erstellt || 0));
+    }
+    function teileFuerGruppe(gruppe) {
+      return teileSortiert().filter((t) => katsFuer(gruppe).includes(t.kategorie) && passtFilter(t));
+    }
+
+    // =====================================================================
+    // Darstellung
+    // =====================================================================
+    const app = document.getElementById("app");
+
+    // Scrollposition von Seite und Filterreihen merken, damit beim Antippen eines Filters nichts herumspringt
+    let gezeigteSeite = null;
+    function scrollMerken() {
+      const seite = document.querySelector("#main .seite");
+      return {
+        seite: gezeigteSeite,
+        top: seite ? seite.scrollTop : 0,
+        chips: [...document.querySelectorAll("#main .chips")].map((c) => c.scrollLeft),
+      };
+    }
+    function scrollWiederherstellen(m) {
+      if (!m || m.seite !== ui.seite) return;
+      const seite = document.querySelector("#main .seite");
+      if (seite) seite.scrollTop = m.top;
+      document.querySelectorAll("#main .chips").forEach((c, i) => { if (m.chips[i] != null) c.scrollLeft = m.chips[i]; });
+    }
+
+    function anzeigen() {
+      const merk = scrollMerken();
+      app.innerHTML = "";
+      if (!geraet.modus) { startSeite(); return; }
+      const main = el("main");
+      main.id = "main";
+      app.appendChild(main);
+      app.appendChild(tabbar());
+      seiteZeichnen(merk);
+    }
+
+    function topbar() {
+      const bar = el("header", "topbar");
+      const profil = el("button", "icon-btn");
+      profil.setAttribute("aria-label", "Profil");
+      profil.appendChild(icon("profil"));
+      profil.onclick = profilSheet;
+      bar.appendChild(el("div", "ort", ui.seite === "dressme" ? "Dress me" : ui.seite === "schrank" ? "Kleiderschrank" : "Lookbook"));
+      if (ui.seite === "schrank") bar.appendChild(profil);   // Profil nur im Kleiderschrank
+      return bar;
+    }
+
+    function tabbar() {
+      const nav = el("nav", "tabbar");
+      [["lookbook", "Lookbook", "lookbook"], ["dressme", "Dress Me", "dressme"], ["schrank", "Kleiderschrank", "schrank"]].forEach(([sid, name, ic]) => {
+        const b = el("button", "tab" + (ui.seite === sid ? " aktiv" : ""));
+        b.setAttribute("aria-label", name);
+        b.title = name;
+        b.append(icon(ic, "ic-32"), el("span", "strich"));
+        b.onclick = () => {
+          if (ui.seite !== sid) ui.filter = { wetter: [], temperatur: [], tags: [] };   // Filter nicht auf andere Seiten mitnehmen
+          ui.seite = sid;
+          anzeigen();
+        };
+        nav.appendChild(b);
+      });
+      return nav;
+    }
+
+    function seiteZeichnen(merk) {
+      const main = document.getElementById("main");
+      if (!main) return;
+      const m = merk || scrollMerken();
+      main.innerHTML = "";
+      if (ui.seite === "dressme") main.appendChild(dressMeSeite());
+      else if (ui.seite === "schrank") main.appendChild(schrankSeite());
+      else main.appendChild(lookbookSeite());
+      // Header scrollt mit dem Inhalt mit (nicht klebend)
+      const scroller = main.querySelector(".seite");
+      // Header gibt es nur noch im Kleiderschrank (mit dem Profil-Knopf rechts)
+      if (scroller) scroller.insertBefore(topbar(), scroller.firstChild);
+      gezeigteSeite = ui.seite;
+      scrollWiederherstellen(m);
+    }
+
+    // ---------- Dress Me ----------
+    // Die Teile liegen untereinander wie ein Flatlay. Jedes Teil hat eine echte Grösse in cm,
+    // damit Schuhe, Shirt und Hose im richtigen Verhältnis zueinander stehen.
+    const ZEILEN = { 2: ["kleid", "schuhe"], 3: ["oben", "unten", "schuhe"], 4: ["jacke", "oben", "unten", "schuhe"] };
+    const MASSE = {   // Breite × Höhe in cm (Rahmen, in den das Foto eingepasst wird)
+      shirt: [58, 64], pullover: [68, 66], jacke: [70, 80], kleid: [72, 128],
+      hose: [52, 102], kurze_hose: [52, 40], rock: [58, 62], schuhe: [27, 13], accessoire: [30, 30],
+    };
+    // Einzelne Beispiel-Kleider, die deutlich kleiner sind als ihre Kategorie
+    const MASSE_TEIL = {
+      "v-blumen-korsett": [46, 47], "v-schwarzes-meshkorsett": [44, 54], "v-cremefarbenes-korsett": [46, 56],
+      "v-pinkes-top": [42, 58], "v-schwarze-weste": [50, 64], "v-schwarzes-rundhalstop": [54, 60],
+      "v-rosa-ballettschuh": [14, 30], "v-gestreifter-rock": [58, 72], "v-weisser-zipfelrock": [58, 48],
+    };
+    const LUECKE_CM = 4;
+
+    function teileAnzahl() { return [2, 3, 4].includes(daten.profil.teileAnzahl) ? daten.profil.teileAnzahl : 3; }
+    function aktiveGruppen() { return ZEILEN[teileAnzahl()]; }
+    function katsFuer(g) {
+      if (g === "oben" && ui.obenTyp && ui.obenTyp !== "alle") return [ui.obenTyp];
+      return GRUPPEN[g].kategorien;
+    }
+    function masseFuer(tid) {
+      const t = daten.teile[tid];
+      if (!t) return [0, 0];
+      const v = tid.indexOf("v-") === 0 && (window.VORLAGEN || []).find((x) => "v-" + x.id === tid);
+      return MASSE_TEIL[tid] || t.masse || (v && v.masse) || MASSE[t.kategorie] || [50, 50];
+    }
+
+    function auswahlPruefen() {
+      aktiveGruppen().forEach((g) => {
+        const ids = teileFuerGruppe(g).map((t) => t.id);
+        if (!ui.auswahl[g] || !ids.includes(ui.auswahl[g])) ui.auswahl[g] = ids[0] || null;
+      });
+      ui.auswahl.acc = ui.auswahl.acc.filter((a) => daten.teile[a]);
+    }
+
+    // Deko-Kreise: 2–3 Kreise, die halb über den Bühnenrand ragen. Alle paar Sekunden wandern sie
+    // an einen neuen zufälligen Ort am Rand und bekommen eine neue Farbe aus der Palette.
+    const KREIS_FARBEN = ["#a18443", "#dcb8bb", "#8686a2", "#e2dbd3", "#c9b27a", "#b9b8cc"];
+    let kreisTimer = null;
+    function kreiseStarten(buehne) {
+      clearInterval(kreisTimer);
+      const kreise = [0, 1, 2].map(() => { const k = el("span", "deko"); buehne.appendChild(k); return k; });
+      function randPunkt(i) {
+        const W = buehne.clientWidth || 400, H = buehne.clientHeight || 600;
+        const d = 120 + Math.random() * 110;
+        // Kreis i bevorzugt eine eigene Seite, damit sie sich nicht stapeln
+        const seite = (i + Math.floor(Math.random() * 2) * 2) % 4;   // 0 oben, 1 rechts, 2 unten, 3 links
+        const entlang = Math.random();
+        let x, y;
+        if (seite === 0) { x = entlang * W; y = 0; }
+        else if (seite === 1) { x = W; y = entlang * H; }
+        else if (seite === 2) { x = entlang * W; y = H; }
+        else { x = 0; y = entlang * H; }
+        return { left: x - d / 2, top: y - d / 2, d };
+      }
+      function bewegen() {
+        if (!buehne.isConnected) { clearInterval(kreisTimer); return; }
+        const farben = KREIS_FARBEN.slice().sort(() => Math.random() - 0.5);
+        kreise.forEach((k, i) => {
+          if (i === 2 && Math.random() < 0.4) { k.style.opacity = "0"; return; }   // manchmal nur zwei Kreise
+          const p = randPunkt(i);
+          k.style.opacity = "";
+          k.style.left = p.left + "px"; k.style.top = p.top + "px";
+          k.style.width = p.d + "px"; k.style.height = p.d + "px";
+          k.style.backgroundColor = farben[i];
+        });
+      }
+      // erste Position ohne Animation, danach alle 10 Sekunden weiter
+      kreise.forEach((k) => { k.style.transition = "none"; });
+      requestAnimationFrame(() => {
+        bewegen();
+        requestAnimationFrame(() => kreise.forEach((k) => { k.style.transition = ""; }));
+      });
+      if (!window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) kreisTimer = setInterval(bewegen, 10000);
+    }
+
+    function dressMeSeite() {
+      auswahlPruefen();
+      const s = el("section", "seite");
+      s.id = "dressme";
+      const buehne = el("div", "buehne");
+
+
+      const lagen = {};
+      const steuerungen = {};
+      let zeilenPx = {};
+
+      // Feste Plätze: Jede Zeile (Oberteil, Hose, Schuhe …) hat einen fixen Platz, berechnet aus den
+      // Standardgrössen der Kategorien. Pfeile stehen fix auf diesem Platz; jedes Teil wird in echter
+      // Grösse (gemeinsamer Massstab) mittig auf seinen Platz gelegt. So springt nichts beim Wechseln.
+      // Platzhöhe je Zeile in cm. Schuhe bekommen extra Höhe, damit auch Stiefel ganz sichtbar sind.
+      const PLATZ_CM = { kleid: [72, 128], jacke: [70, 80], oben: [68, 66], unten: [58, 102], schuhe: [40, 30] };
+      function plaetze(H, W) {
+        const gruppen = aktiveGruppen();
+        const masse = gruppen.map((g) => PLATZ_CM[g]);
+        const summeCm = masse.reduce((a, m) => a + m[1], 0) + LUECKE_CM * (gruppen.length - 1);
+        const pxProCm = Math.min((H - 24) / summeCm, (W - 128) / Math.max.apply(null, masse.map((m) => m[0])));
+        let y = (H - summeCm * pxProCm) / 2;
+        const p = {};
+        gruppen.forEach((g, i) => {
+          const h = masse[i][1] * pxProCm;
+          p[g] = { von: y, bis: y + h, mitte: y + h / 2 };
+          y += h + LUECKE_CM * pxProCm;
+        });
+        return { p, pxProCm };
+      }
+      function anordnen() {
+        const W = buehne.clientWidth;
+        const H = buehne.clientHeight - 60;   // unten immer Platz für Accessoires, damit die Pfeile fix bleiben
+        if (!H || !W) return;
+        const { p, pxProCm } = plaetze(H, W);
+        const halbeLuecke = (LUECKE_CM * pxProCm) / 2;
+        zeilenPx = {};
+        aktiveGruppen().forEach((g) => {
+          const pl = p[g];
+          zeilenPx[g] = [pl.von - halbeLuecke, pl.bis + halbeLuecke];
+          const st = steuerungen[g];
+          if (st) st.style.top = Math.round(Math.max(22, Math.min(H - 22, pl.mitte))) + "px";
+          const img = lagen[g];
+          if (!img) return;
+          let [bw, bh] = masseFuer(ui.auswahl[g]);
+          let w = bw * pxProCm, h = bh * pxProCm;
+          // Nie grösser als der eigene Platz (inkl. Abstand) und nie aus der Bühne heraus
+          const maxW = W - 128;
+          const maxH = pl.bis - pl.von + 2 * halbeLuecke;
+          // Mindestgrösse, damit kleine Teile (Korsett, Top) nicht winzig wirken
+          const minH = (pl.bis - pl.von) * ({ oben: 0.72, jacke: 0.72, kleid: 0.6, unten: 0.42, schuhe: 0.4 }[g] || 0.5);
+          if (h < minH) { w *= minH / h; h = minH; }
+          if (w > maxW) { h *= maxW / w; w = maxW; }
+          if (h > maxH) { w *= maxH / h; h = maxH; }
+          let top = pl.mitte - h / 2;
+          top = Math.max(4, Math.min(H - 4 - h, top));
+          img.style.top = top + "px";
+          img.style.height = h + "px";
+          img.style.width = w + "px";
+          img.style.left = (W - w) / 2 + "px";
+        });
+      }
+
+      function lageZeichnen(g, richtung) {
+        const alt = lagen[g];
+        delete lagen[g];
+        const t = daten.teile[ui.auswahl[g]];
+        if (alt) {
+          // altes Teil sanft ausblenden statt hart entfernen
+          alt.classList.add("raus");
+          setTimeout(() => alt.remove(), 260);
+        }
+        if (!t) return;
+        const img = teilBild(t);
+        if (alt) {
+          // neues Teil startet in der Grösse des alten und wächst/schrumpft dann auf seine eigene Grösse
+          ["top", "left", "width", "height"].forEach((k) => { img.style[k] = alt.style[k]; });
+        }
+        img.classList.add("lage");
+        if (richtung) img.classList.add(richtung > 0 ? "rein-rechts" : "rein-links");
+        img.dataset.teil = ui.auswahl[g];
+        img.draggable = false;
+        img.alt = t.name;
+        buehne.appendChild(img);
+        lagen[g] = img;
+      }
+
+      function steuerZeichnen(g) {
+        const altTop = steuerungen[g] ? steuerungen[g].style.top : "";
+        if (steuerungen[g]) { steuerungen[g].remove(); delete steuerungen[g]; }
+        const liste = teileFuerGruppe(g);
+        const st = el("div", "steuer");
+        st.style.top = altTop;
+        if (liste.length > 1) {
+          const links = el("button", "pfeil links");
+          links.setAttribute("aria-label", GRUPPEN[g].titel + ": vorheriges Teil");
+          links.appendChild(icon("links", "ic-20"));
+          links.onclick = () => blaettern(g, -1);
+          const rechts = el("button", "pfeil rechts");
+          rechts.setAttribute("aria-label", GRUPPEN[g].titel + ": nächstes Teil");
+          rechts.appendChild(icon("rechts", "ic-20"));
+          rechts.onclick = () => blaettern(g, 1);
+          st.append(links, rechts);
+        }
+        // Oberteil: unter den Pfeilen je ein Knopf für nur Shirts (links) oder nur Pullover (rechts)
+        if (g === "oben") {
+          [["shirt", "links", "Nur Shirts"], ["pullover", "rechts", "Nur Pullover"]].forEach(([typ, seite, text]) => {
+            const an = ui.obenTyp === typ;
+            const b = el("button", "typ " + seite + (an ? " aktiv" : ""));
+            b.setAttribute("aria-label", text);
+            b.setAttribute("aria-pressed", an ? "true" : "false");
+            b.title = text;
+            b.appendChild(icon(typ, "ic-20"));
+            b.onclick = () => { ui.obenTyp = an ? "alle" : typ; ui.auswahl.oben = null; auswahlPruefen(); lageZeichnen("oben"); if (lagen.oben) void lagen.oben.offsetWidth; steuerZeichnen("oben"); anordnen(); };
+            st.appendChild(b);
+          });
+        }
+        buehne.appendChild(st);
+        steuerungen[g] = st;
+      }
+
+      function blaettern(g, schritt) {
+        const liste = teileFuerGruppe(g);
+        if (liste.length < 2) return;
+        const i = liste.findIndex((t) => t.id === ui.auswahl[g]);
+        ui.auswahl[g] = liste[(i + schritt + liste.length) % liste.length].id;
+        lageZeichnen(g, schritt);
+        if (lagen[g]) void lagen[g].offsetWidth;   // Startgrösse übernehmen, damit die Animation läuft
+        anordnen();
+      }
+
+      const fehlend = aktiveGruppen().filter((g) => !teileFuerGruppe(g).length);
+      aktiveGruppen().forEach((g) => { lageZeichnen(g); steuerZeichnen(g); });
+      if (fehlend.length) {
+        const leer = el("div", "leer-buehne");
+        leer.textContent = (filterAktiv() ? "Für diesen Filter fehlt: " : "Im Schrank fehlt noch: ") + fehlend.map((g) => GRUPPEN[g].titel).join(", ") + ".";
+        buehne.appendChild(leer);
+      }
+      // Gewählte Accessoires: eigene Reihe unten auf der Bühne, ohne Kasten
+      const accs = ui.auswahl.acc.filter((a) => daten.teile[a]);
+      const accReihe = el("div", "acc-reihe");
+      accReihe.setAttribute("role", "button");
+      accReihe.setAttribute("aria-label", accs.length ? "Accessoires ändern" : "Accessoire hinzufügen");
+      if (accs.length) {
+        accs.slice(0, 4).forEach((a) => { const img = teilBild(daten.teile[a]); img.alt = daten.teile[a].name; img.draggable = false; accReihe.appendChild(img); });
+        if (accs.length > 4) accReihe.appendChild(el("span", "mehr", "+" + (accs.length - 4)));
+      } else {
+        const plus = el("span", "btn-tertiaer");
+        plus.append(icon("plus", "ic-16"), document.createTextNode("Accessoire"));
+        accReihe.appendChild(plus);
+      }
+      accReihe.onclick = accessoiresSheet;
+      buehne.appendChild(accReihe);
+      if (window.ResizeObserver) new ResizeObserver(anordnen).observe(buehne);
+      requestAnimationFrame(() => { anordnen(); requestAnimationFrame(() => buehne.classList.add("bereit")); });
+
+      // Wischen: Die Zeile, in der der Finger startet, wechselt
+      let start = null;
+      buehne.addEventListener("pointerdown", (e) => { if (e.target.closest(".pfeil, .typ, .acc-reihe")) return; start = { x: e.clientX, y: e.clientY }; });
+      buehne.addEventListener("pointerup", (e) => {
+        if (!start) return;
+        const dx = e.clientX - start.x, dy = e.clientY - start.y;
+        const y0 = start.y;
+        start = null;
+        if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
+          const y = y0 - buehne.getBoundingClientRect().top;
+          const g = Object.keys(zeilenPx).find((x) => y >= zeilenPx[x][0] && y <= zeilenPx[x][1]);
+          if (g) blaettern(g, dx < 0 ? 1 : -1);
+        } else if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+          const img = e.target.closest(".lage");
+          if (img) teilDetailSheet(img.dataset.teil);
+        }
+      });
+      buehne.addEventListener("pointercancel", () => { start = null; });
+      s.appendChild(buehne);
+
+      // Untere Leiste: Anzahl Teile, Zufall, Accessoires, Speichern
+      const leiste = el("div", "leiste-unten");
+      const seg = el("div", "segment");
+      const knoepfe = el("div", "segment-knoepfe");
+      knoepfe.setAttribute("role", "group");
+      knoepfe.setAttribute("aria-label", "Anzahl Kleidungsstücke");
+      const hinweis = { 2: "Kleid + Schuhe", 3: "Oberteil, Unterteil, Schuhe", 4: "mit Jacke" };
+      [2, 3, 4].forEach((n) => {
+        const b = el("button", teileAnzahl() === n ? "aktiv" : "", String(n));
+        b.setAttribute("aria-label", n + " Teile: " + hinweis[n]);
+        b.title = hinweis[n];
+        b.onclick = () => { daten.profil.teileAnzahl = n; speichern("profil/teileAnzahl", n); seiteZeichnen(); };
+        knoepfe.appendChild(b);
+      });
+      seg.append(knoepfe, el("span", "caption", "Teile"));
+      const zufallBtn = el("button", "icon-btn");
+      zufallBtn.setAttribute("aria-label", "Zufälliges Outfit");
+      zufallBtn.appendChild(svgIcon(SVG_ZUFALL, 22));
+      zufallBtn.onclick = zufallsOutfit;
+      const filterBtn = el("button", "icon-btn");
+      filterBtn.setAttribute("aria-label", "Filter: Wetter, Temperatur, Tags");
+      filterBtn.appendChild(icon("filter", "ic-20"));
+      if (filterAktiv()) filterBtn.appendChild(el("span", "punkt"));
+      filterBtn.onclick = filterSheet;
+      const speichernBtn = el("button", "btn accent", "Speichern");
+      speichernBtn.onclick = () => outfitSpeichernSheet();
+      leiste.append(seg, filterBtn, zufallBtn, speichernBtn);
+      s.appendChild(leiste);
+      return s;
+    }
+
+    function zufallsOutfit() {
+      if (aktiveGruppen().every((g) => !teileFuerGruppe(g).length)) { toast("Dafür braucht es zuerst ein paar Teile im Schrank."); return; }
+      aktiveGruppen().forEach((g) => {
+        const l = teileFuerGruppe(g);
+        ui.auswahl[g] = l.length ? zufall(l).id : null;
+      });
+      const acc = liste(daten.teile).filter((t) => t.kategorie === "accessoire" && passtFilter(t));
+      ui.auswahl.acc = acc.length && Math.random() < 0.6 ? [zufall(acc).id] : [];
+      seiteZeichnen();
+    }
+
+    function aktuelleTeile() {
+      const ids = aktiveGruppen().map((g) => ui.auswahl[g]).filter((x) => x && daten.teile[x]);
+      return ids.concat(ui.auswahl.acc.filter((a) => daten.teile[a]));
+    }
+
+    // ---------- Kleiderschrank ----------
+    function schrankSeite() {
+      const s = el("section", "seite");
+      const inhalt = el("div", "seite-inhalt");
+      s.appendChild(inhalt);
+
+      const kopf = el("div");
+      kopf.append(el("div", "caption", gruss() + (daten.profil.name ? ", " + daten.profil.name : "")), el("h1", "display", "Das ist dein Schrank"));
+      kopf.firstChild.style.marginBottom = "6px";
+      inhalt.appendChild(kopf);
+
+
+      // Kategorien
+      const kats = el("div", "chips");
+      const alle = el("button", "chip ohne-icon" + (ui.schrankKat === "alle" ? " aktiv" : ""), "Alle");
+      alle.onclick = () => { ui.schrankKat = "alle"; seiteZeichnen(); };
+      kats.appendChild(alle);
+      KATEGORIEN.forEach((k) => {
+        const c = el("button", "chip" + (ui.schrankKat === k.id ? " aktiv" : ""));
+        c.append(icon(k.icon, "ic-20"), document.createTextNode(k.name));
+        c.onclick = () => { ui.schrankKat = k.id; seiteZeichnen(); };
+        kats.appendChild(c);
+      });
+      inhalt.appendChild(kats);
+      inhalt.appendChild(wetterChips());
+
+      const teile = teileSortiert().filter((t) => (ui.schrankKat === "alle" || t.kategorie === ui.schrankKat) && passtFilter(t));
+      const rk = el("div", "reihen-kopf");
+      rk.append(el("h2", "title-italic", ui.schrankKat === "alle" ? "Alle Teile" : KAT[ui.schrankKat].name), el("span", "caption", teile.length + (teile.length === 1 ? " Teil" : " Teile")));
+      inhalt.appendChild(rk);
+
+      if (!teile.length) {
+        const leer = el("div", "leer");
+        leer.append(icon("schrank", "ic-40"), el("p", "klein", liste(daten.teile).length ? "Nichts gefunden. Probier einen anderen Filter." : "Dein Schrank ist noch leer."));
+        inhalt.appendChild(leer);
+      } else {
+        const raster = el("div", "item-raster");
+        teile.forEach((t) => raster.appendChild(itemKarte(t)));
+        inhalt.appendChild(raster);
+      }
+
+      const fab = el("button", "btn breit fab");
+      fab.append(icon("plus", "ic-20"), document.createTextNode("Teil hinzufügen"));
+      fab.onclick = () => teilBearbeitenSheet(null);
+      const wrap = el("div");
+      wrap.style.cssText = "position:absolute;inset:0";
+      wrap.append(s, fab);
+      return wrap;
+    }
+
+    function wetterChips() {
+      const box = el("div", "chips");
+      WETTER.concat(TEMPERATUR).forEach((w) => {
+        const art = WETTER.includes(w) ? "wetter" : "temperatur";
+        const an = ui.filter[art].includes(w.id);
+        const c = el("button", "chip wetter" + (an ? " aktiv" : ""));
+        c.append(icon(w.id, "ic-20"), document.createTextNode(w.name));
+        c.onclick = () => {
+          const l = ui.filter[art];
+          ui.filter[art] = an ? l.filter((x) => x !== w.id) : l.concat(w.id);
+          anzeigen();
+        };
+        box.appendChild(c);
+      });
+      eigeneTags().forEach((t) => {
+        const an = (ui.filter.tags || []).includes(t.id);
+        const c = el("button", "chip wetter ohne-icon" + (an ? " aktiv" : ""), t.name);
+        c.onclick = () => {
+          const l = ui.filter.tags || [];
+          ui.filter.tags = an ? l.filter((x) => x !== t.id) : l.concat(t.id);
+          anzeigen();
+        };
+        box.appendChild(c);
+      });
+      return box;
+    }
+
+    function itemKarte(t) {
+      const k = el("button", "card-item");
+      const bild = el("div", "bild");
+      bild.appendChild(teilBild(t));
+      const wm = el("div", "wetter-mini");
+      (t.wetter || []).concat(t.temperatur || []).forEach((w) => wm.appendChild(icon(w, "ic-16")));
+      bild.appendChild(wm);
+      const meta = el("div", "meta");
+      meta.append(el("span", "caption", (KAT[t.kategorie] || {}).name || ""), el("span", "title", t.name));
+      k.append(bild, meta);
+      k.onclick = () => teilDetailSheet(t.id);
+      return k;
+    }
+
+    function outfitAnziehen(ids) {
+      const t = ids.map((x) => daten.teile[x] ? Object.assign({ id: x }, daten.teile[x]) : null).filter(Boolean);
+      const finde = (kats) => { const x = t.find((y) => kats.includes(y.kategorie)); return x ? x.id : null; };
+      const kleid = finde(["kleid"]), jacke = finde(["jacke"]);
+      const n = kleid ? 2 : jacke ? 4 : 3;
+      daten.profil.teileAnzahl = n;
+      speichern("profil/teileAnzahl", n);
+      ui.obenTyp = "alle";
+      ui.auswahl = {
+        kleid, jacke,
+        oben: finde(GRUPPEN.oben.kategorien),
+        unten: finde(GRUPPEN.unten.kategorien),
+        schuhe: finde(["schuhe"]),
+        acc: t.filter((x) => x.kategorie === "accessoire").map((x) => x.id),
+      };
+      // Filter zurücksetzen, damit alle Teile des Outfits sichtbar sind
+      ui.filter = { wetter: [], temperatur: [], tags: [] };
+      ui.seite = "dressme";
+      schliessenAlle();
+      anzeigen();
+    }
+
+    // ---------- Lookbook ----------
+    function lookbookSeite() {
+      const s = el("section", "seite");
+      const inhalt = el("div", "seite-inhalt");
+      s.appendChild(inhalt);
+      const kopf = el("div");
+      kopf.append(el("div", "caption", "Getragen & geliebt"), el("h1", "display", "Dein Lookbook"));
+      kopf.firstChild.style.marginBottom = "6px";
+      inhalt.appendChild(kopf);
+      inhalt.appendChild(wetterChips());
+
+      const outfits = liste(daten.outfits)
+        .filter((o) => passtFilter(o))
+        .sort((a, b) => (b.datum || "").localeCompare(a.datum || "") || (b.erstellt || 0) - (a.erstellt || 0));
+
+      if (!outfits.length) {
+        const leer = el("div", "leer");
+        leer.append(icon("lookbook", "ic-40"), el("p", "klein", liste(daten.outfits).length
+          ? "Kein Outfit passt zum Filter."
+          : "Noch keine Outfits gespeichert. Stell dir bei «Dress Me» ein Outfit zusammen und speichere es hier."));
+        const b = el("button", "btn klein", "Zu Dress Me");
+        b.onclick = () => { ui.seite = "dressme"; anzeigen(); };
+        leer.appendChild(b);
+        inhalt.appendChild(leer);
+      } else {
+        const rk = el("div", "reihen-kopf");
+        rk.append(el("h2", "title-italic", "Getragene Outfits"), el("span", "caption", outfits.length + (outfits.length === 1 ? " Look" : " Looks")));
+        inhalt.appendChild(rk);
+        outfits.forEach((o, i) => inhalt.appendChild(lookKarte(o, i % 2 === 1)));
+      }
+      return s;
+    }
+
+    function lookKarte(o, ink) {
+      const karte = el("button", "card-look" + (ink ? " ink" : ""));
+      karte.appendChild(el("span", "deko"));
+      karte.append(el("span", "caption", datumText(o.datum) || "Look"), el("h2", "display", o.name || "Ohne Titel"));
+      karte.appendChild(collage(o));
+      if (o.notiz) karte.appendChild(el("p", "klein", o.notiz));
+      const tags = tagPills(o);
+      if (tags.childNodes.length) karte.appendChild(tags);
+      karte.onclick = () => outfitDetailSheet(o.id);
+      return karte;
+    }
+
+    function collage(o) {
+      const col = el("div", "collage");
+      if (o.foto) { const f = el("div", "stueck foto-gross"); f.appendChild(bildElement(o.foto)); f.firstChild.classList.remove("foto"); col.appendChild(f); }
+      (o.teile || []).forEach((tid) => {
+        const t = daten.teile[tid];
+        const st = el("div", "stueck");
+        if (t) st.appendChild(teilBild(t));
+        else { st.appendChild(el("span", "klein gedaempft", "entfernt")); }
+        col.appendChild(st);
+      });
+      return col;
+    }
+
+    // =====================================================================
+    // Sheets
+    // =====================================================================
+    function sheet(titel, unterzeile) {
+      const hg = el("div", "sheet-hg");
+      const s = el("div", "sheet");
+      s.setAttribute("role", "dialog");
+      s.setAttribute("aria-modal", "true");
+      s.appendChild(el("div", "sheet-griff"));
+      const kopf = el("div", "sheet-kopf");
+      const t = el("div");
+      if (unterzeile) t.appendChild(el("div", "caption", unterzeile));
+      t.appendChild(el("h2", "display", titel));
+      const zu = el("button", "icon-btn");
+      zu.setAttribute("aria-label", "Schliessen");
+      zu.appendChild(icon("x", "ic-20"));
+      kopf.append(t, zu);
+      const inhalt = el("div", "sheet-inhalt");
+      s.append(kopf, inhalt);
+      hg.appendChild(s);
+      const schliessen = () => hg.remove();
+      zu.onclick = schliessen;
+      hg.addEventListener("click", (e) => { if (e.target === hg) schliessen(); });
+      document.body.appendChild(hg);
+      return { inhalt, schliessen, titelEl: t.lastChild };
+    }
+    // Eigene Rückfrage statt confirm(): funktioniert überall, auch in eingebetteten Vorschauen
+    function bestaetigen(frage, jaText) {
+      return new Promise((ok) => {
+        const { inhalt, schliessen } = sheet("Sicher?", null);
+        inhalt.appendChild(el("p", "", frage));
+        const reihe = el("div", "btn-reihe");
+        const nein = el("button", "btn outline", "Abbrechen");
+        const ja = el("button", "btn", jaText || "Ja");
+        nein.onclick = () => { schliessen(); ok(false); };
+        ja.onclick = () => { schliessen(); ok(true); };
+        reihe.append(nein, ja);
+        inhalt.appendChild(reihe);
+      });
+    }
+    function schliessenAlle() { document.querySelectorAll(".sheet-hg").forEach((s) => s.remove()); }
+
+    function auswahlChips(optionen, gewaehlt, mehrfach, onChange) {
+      const box = el("div", "chips umbruch");
+      let wert = mehrfach ? (gewaehlt || []).slice() : gewaehlt;
+      function zeichnen() {
+        box.innerHTML = "";
+        optionen.forEach((o) => {
+          const an = mehrfach ? wert.includes(o.id) : wert === o.id;
+          const c = el("button", "chip" + (an ? " aktiv" : "") + (o.icon === false ? " ohne-icon" : ""));
+          c.type = "button";
+          if (o.icon !== false) c.appendChild(icon(o.icon || o.id, "ic-20"));
+          c.appendChild(document.createTextNode(o.name));
+          c.onclick = () => {
+            if (mehrfach) wert = an ? wert.filter((x) => x !== o.id) : wert.concat(o.id);
+            else wert = o.id;
+            zeichnen();
+            onChange(wert);
+          };
+          box.appendChild(c);
+        });
+      }
+      zeichnen();
+      return box;
+    }
+    function gruppe(titel, inhalt, hinweis) {
+      const g = el("div", "chip-gruppe");
+      const k = el("div", "caption", titel);
+      g.appendChild(k);
+      if (hinweis) g.appendChild(el("div", "klein gedaempft", hinweis));
+      g.appendChild(inhalt);
+      return g;
+    }
+
+    function filterSheet() {
+      const { inhalt, schliessen } = sheet("Filter", "Was trägst du heute?");
+      const neu = { wetter: ui.filter.wetter.slice(), temperatur: ui.filter.temperatur.slice(), tags: (ui.filter.tags || []).slice() };
+      inhalt.append(
+        gruppe("Wetter", auswahlChips(WETTER, neu.wetter, true, (v) => { neu.wetter = v; })),
+        gruppe("Temperatur", auswahlChips(TEMPERATUR, neu.temperatur, true, (v) => { neu.temperatur = v; })),
+        el("p", "klein gedaempft", "Der Filter gilt nur für Dress Me."),
+      );
+      if (eigeneTags().length) {
+        const tg = gruppe("Eigene Tags", auswahlChips(eigeneTags().map((t) => ({ id: t.id, name: t.name, icon: false })), neu.tags, true, (v) => { neu.tags = v; }));
+        inhalt.insertBefore(tg, inhalt.lastChild);
+      }
+      const reihe = el("div", "btn-reihe");
+      const reset = el("button", "btn outline", "Zurücksetzen");
+      reset.onclick = () => { ui.filter = { wetter: [], temperatur: [], tags: [] }; schliessen(); anzeigen(); };
+      const ok = el("button", "btn", "Anwenden");
+      ok.onclick = () => { ui.filter = neu; schliessen(); anzeigen(); };
+      reihe.append(reset, ok);
+      inhalt.appendChild(reihe);
+    }
+
+    function accessoiresSheet() {
+      const { inhalt, schliessen } = sheet("Accessoires", "Dazu kombinieren");
+      const acc = teileSortiert().filter((t) => t.kategorie === "accessoire" && passtFilter(t));
+      if (!acc.length) {
+        inhalt.appendChild(el("p", "klein", "Noch keine Accessoires" + (filterAktiv() ? " für diesen Filter" : "") + ". Füge im Kleiderschrank welche hinzu (Kategorie «Accessoire»)."));
+        return;
+      }
+      let gewaehlt = ui.auswahl.acc.slice();
+      const raster = el("div", "mini-raster");
+      acc.forEach((t) => {
+        const b = el("button", "mini" + (gewaehlt.includes(t.id) ? " aktiv" : ""));
+        b.title = t.name;
+        b.appendChild(teilBild(t));
+        b.onclick = () => {
+          gewaehlt = gewaehlt.includes(t.id) ? gewaehlt.filter((x) => x !== t.id) : gewaehlt.concat(t.id);
+          b.classList.toggle("aktiv");
+        };
+        raster.appendChild(b);
+      });
+      inhalt.appendChild(raster);
+      const ok = el("button", "btn breit", "Übernehmen");
+      ok.onclick = () => { ui.auswahl.acc = gewaehlt; schliessen(); seiteZeichnen(); };
+      inhalt.appendChild(ok);
+    }
+
+    function teilDetailSheet(tid) {
+      const t = daten.teile[tid];
+      if (!t) return;
+      const { inhalt, schliessen } = sheet(t.name, (KAT[t.kategorie] || {}).name);
+      const bild = el("div", "detail-bild");
+      bild.appendChild(teilBild(t));
+      inhalt.appendChild(bild);
+      inhalt.appendChild(tagPills(t));
+      const getragen = liste(daten.outfits).filter((o) => (o.teile || []).includes(tid)).length;
+      inhalt.appendChild(el("p", "klein gedaempft", getragen ? "In " + getragen + (getragen === 1 ? " Outfit" : " Outfits") + " im Lookbook." : "Noch in keinem Outfit im Lookbook."));
+      const anziehen = el("button", "btn breit", "In Dress Me anziehen");
+      anziehen.onclick = () => {
+        const ids = aktuelleTeile().filter((x) => {
+          const a = daten.teile[x];
+          return a && a.kategorie !== t.kategorie && !(gruppeVon(a) === gruppeVon(t) && gruppeVon(t) !== "acc");
+        });
+        outfitAnziehen(ids.concat(tid));
+      };
+      const reihe = el("div", "btn-reihe");
+      const bearbeiten = el("button", "btn outline", "Bearbeiten");
+      bearbeiten.onclick = () => { schliessen(); teilBearbeitenSheet(tid); };
+      const loeschen = el("button", "btn gefahr", "Löschen");
+      loeschen.onclick = async () => {
+        if (!(await bestaetigen("«" + t.name + "» aus dem Schrank löschen?", "Löschen"))) return;
+        if (t.bild && t.bild.indexOf("bild:") === 0) bildLoeschen(t.bild.slice(5));
+        delete daten.teile[tid];
+        speichern("teile/" + tid, null);
+        schliessen();
+        anzeigen();
+        toast("Gelöscht.");
+      };
+      reihe.append(bearbeiten, loeschen);
+      inhalt.append(anziehen, reihe);
+    }
+    function gruppeVon(t) {
+      if (t.kategorie === "accessoire") return "acc";
+      return Object.keys(GRUPPEN).find((g) => GRUPPEN[g].kategorien.includes(t.kategorie));
+    }
+
+    // Foto aufnehmen oder auswählen. Mit «freistellen» wird der Hintergrund automatisch entfernt (abschaltbar).
+    function fotoWaehler(start, onFoto, freistellen) {
+      const huelle = el("div", "chip-gruppe");
+      const box = el("div", "foto-wahl" + (start ? " hat-bild" : ""));
+      huelle.appendChild(box);
+      const vorschau = start ? bildElement(start) : null;
+      if (vorschau) { vorschau.classList.remove("foto"); box.appendChild(vorschau); }
+      const hinweis = el("div", "klein gedaempft", "Am besten flach vor einem hellen, einfarbigen Hintergrund fotografieren.");
+      const kamera = el("input"); kamera.type = "file"; kamera.accept = "image/*"; kamera.setAttribute("capture", "environment"); kamera.hidden = true;
+      const galerie = el("input"); galerie.type = "file"; galerie.accept = "image/*"; galerie.hidden = true;
+      const reihe = el("div", "btn-reihe");
+      const b1 = el("button", "btn klein", "Foto aufnehmen"); b1.type = "button"; b1.onclick = () => kamera.click();
+      const b2 = el("button", "btn klein outline", "Aus Galerie"); b2.type = "button"; b2.onclick = () => galerie.click();
+      reihe.append(b1, b2);
+      if (!start) box.appendChild(icon("plus", "ic-32"));
+      box.append(reihe, kamera, galerie);
+      if (!start) box.appendChild(hinweis);
+      const schalter = el("label", "liste-zeile verborgen");
+      schalter.style.cursor = "pointer";
+      const cb = el("input"); cb.type = "checkbox"; cb.checked = true; cb.style.cssText = "width:22px;height:22px;accent-color:#091516";
+      schalter.append(el("span", "klein", "Hintergrund automatisch entfernen"), cb);
+      huelle.appendChild(schalter);
+      let ergebnis = null;
+      function zeigen() {
+        if (!ergebnis) return;
+        const frei = !!(ergebnis.frei && cb.checked);
+        const src = frei ? ergebnis.frei : ergebnis.normal;
+        box.querySelectorAll("img, .ic, .klein").forEach((x) => x.remove());
+        const img = el("img"); img.src = src; img.alt = "";
+        box.style.background = frei ? "repeating-conic-gradient(#f4f1ef 0 25%, #ede0df 0 50%) 0 0 / 18px 18px" : "";
+        if (frei) img.style.background = "transparent";
+        box.insertBefore(img, box.firstChild);
+        box.classList.add("hat-bild");
+        onFoto({ data: src, freigestellt: frei });
+      }
+      cb.onchange = zeigen;
+      async function gewaehlt(e) {
+        const datei = e.target.files && e.target.files[0];
+        if (!datei) return;
+        try {
+          if (freistellen) ergebnis = await fotoFuerTeil(datei);
+          else ergebnis = { normal: await fotoVerkleinern(datei), frei: null };
+          schalter.classList.toggle("verborgen", !ergebnis.frei);
+          zeigen();
+        } catch (f) { toast(f.message); }
+      }
+      kamera.onchange = gewaehlt;
+      galerie.onchange = gewaehlt;
+      return huelle;
+    }
+
+    function teilBearbeitenSheet(tid) {
+      const alt = tid ? daten.teile[tid] : null;
+      const { inhalt, schliessen } = sheet(alt ? "Teil bearbeiten" : "Neues Teil", alt ? alt.name : "In den Schrank");
+      const neu = {
+        name: alt ? alt.name : "",
+        kategorie: alt ? alt.kategorie : null,
+        wetter: alt ? (alt.wetter || []).slice() : [],
+        temperatur: alt ? (alt.temperatur || []).slice() : [],
+        tags: alt ? (alt.tags || []).slice() : [],
+      };
+      let neuesFoto = null;
+      inhalt.appendChild(fotoWaehler(alt ? alt.bild : null, (d) => { neuesFoto = d; }, true));
+
+      const nameFeld = el("label", "feld");
+      const name = el("input"); name.placeholder = "z. B. Trenchcoat Camel"; name.value = neu.name; name.maxLength = 60;
+      nameFeld.append(el("span", "caption", "Name"), name);
+      inhalt.appendChild(nameFeld);
+
+      const kats = el("div", "kat-raster");
+      function katZeichnen() {
+        kats.innerHTML = "";
+        KATEGORIEN.forEach((k) => {
+          const b = el("button", "kat" + (neu.kategorie === k.id ? " aktiv" : ""));
+          b.type = "button";
+          b.append(icon(k.icon, "ic-32"), el("span", "klein", k.name));
+          b.onclick = () => { neu.kategorie = k.id; katZeichnen(); };
+          kats.appendChild(b);
+        });
+      }
+      katZeichnen();
+      inhalt.appendChild(gruppe("Was ist es?", kats));
+      inhalt.appendChild(gruppe("Wetter", auswahlChips(WETTER, neu.wetter, true, (v) => { neu.wetter = v; }), "Beides wählen, wenn es zu jedem Wetter passt."));
+      inhalt.appendChild(gruppe("Temperatur", auswahlChips(TEMPERATUR, neu.temperatur, true, (v) => { neu.temperatur = v; })));
+      inhalt.appendChild(gruppe("Eigene Tags", tagAuswahl(neu.tags, (v) => { neu.tags = v; })));
+      const fehler = el("p", "fehler-text");
+      inhalt.appendChild(fehler);
+      const ok = el("button", "btn breit", alt ? "Speichern" : "In den Schrank legen");
+      ok.onclick = async () => {
+        neu.name = name.value.trim();
+        if (!alt && !neuesFoto) { fehler.textContent = "Bitte zuerst ein Foto aufnehmen oder auswählen."; return; }
+        if (!neu.kategorie) { fehler.textContent = "Bitte wähle aus, was es ist (z. B. Hose oder Shirt)."; return; }
+        if (!neu.name) neu.name = KAT[neu.kategorie].name;
+        if (!neu.wetter.length) neu.wetter = ["sonne", "regen"];
+        if (!neu.temperatur.length) neu.temperatur = ["warm", "kalt"];
+        ok.disabled = true; ok.textContent = "Speichert …";
+        try {
+          const teilId = tid || id();
+          let bild = alt ? alt.bild : null;
+          if (neuesFoto) {
+            const bid = id();
+            await bildSpeichern(bid, neuesFoto.data);
+            if (alt && alt.bild && alt.bild.indexOf("bild:") === 0) bildLoeschen(alt.bild.slice(5));
+            bild = "bild:" + bid;
+          }
+          const teil = Object.assign({}, alt || {}, neu, { bild, erstellt: alt ? alt.erstellt : Date.now() });
+          if (neuesFoto) { delete teil.vorlage; teil.freigestellt = neuesFoto.freigestellt; }
+          daten.teile[teilId] = teil;
+          await speichern("teile/" + teilId, teil);
+          schliessen();
+          ui.schrankKat = "alle";
+          anzeigen();
+          toast(alt ? "Gespeichert." : "«" + teil.name + "» liegt jetzt im Schrank.");
+        } catch (f) {
+          fehler.textContent = f.message;
+          ok.disabled = false; ok.textContent = "Nochmals versuchen";
+        }
+      };
+      inhalt.appendChild(ok);
+    }
+
+    function outfitSpeichernSheet(oid) {
+      const alt = oid ? daten.outfits[oid] : null;
+      const teile = alt ? (alt.teile || []).slice() : aktuelleTeile();
+      if (!teile.length) { toast("Stell zuerst ein Outfit zusammen."); return; }
+      const { inhalt, schliessen } = sheet(alt ? "Look bearbeiten" : "Im Lookbook speichern", alt ? datumText(alt.datum) : "Outfit getragen");
+      // Wetter/Temperatur aus den Teilen vorschlagen
+      const gemeinsam = (feld, alle) => alle.filter((w) => teile.every((x) => (daten.teile[x] && daten.teile[x][feld] || []).includes(w)));
+      const neu = {
+        name: alt ? alt.name : "",
+        datum: alt ? alt.datum : heute(),
+        notiz: alt ? alt.notiz || "" : "",
+        wetter: alt ? (alt.wetter || []).slice() : (ui.filter.wetter.length ? ui.filter.wetter.slice() : gemeinsam("wetter", ["sonne", "regen"])),
+        temperatur: alt ? (alt.temperatur || []).slice() : (ui.filter.temperatur.length ? ui.filter.temperatur.slice() : gemeinsam("temperatur", ["warm", "kalt"])),
+        tags: alt ? (alt.tags || []).slice() : (ui.filter.tags || []).slice(),
+      };
+      let foto = null;
+      inhalt.appendChild(collage({ teile }));
+
+      const nameFeld = el("label", "feld");
+      const name = el("input"); name.placeholder = "z. B. Büro Montag"; name.value = neu.name; name.maxLength = 60;
+      nameFeld.append(el("span", "caption", "Name des Looks"), name);
+      const datumFeld = el("label", "feld");
+      const datum = el("input"); datum.type = "date"; datum.value = neu.datum;
+      datumFeld.append(el("span", "caption", "Getragen am"), datum);
+      inhalt.append(nameFeld, datumFeld);
+      inhalt.appendChild(gruppe("Wetter", auswahlChips(WETTER, neu.wetter, true, (v) => { neu.wetter = v; })));
+      inhalt.appendChild(gruppe("Temperatur", auswahlChips(TEMPERATUR, neu.temperatur, true, (v) => { neu.temperatur = v; })));
+      inhalt.appendChild(gruppe("Eigene Tags", tagAuswahl(neu.tags, (v) => { neu.tags = v; })));
+      const notizFeld = el("label", "feld");
+      const notiz = el("textarea"); notiz.placeholder = "z. B. mit brauner Uhr tragen"; notiz.value = neu.notiz;
+      notizFeld.append(el("span", "caption", "Notiz"), notiz);
+      inhalt.appendChild(notizFeld);
+      if (!alt) inhalt.appendChild(gruppe("Foto vom Outfit (optional)", fotoWaehler(null, (d) => { foto = d.data; })));
+
+      const fehler = el("p", "fehler-text");
+      inhalt.appendChild(fehler);
+      const ok = el("button", "btn breit", alt ? "Speichern" : "Im Lookbook speichern");
+      ok.onclick = async () => {
+        ok.disabled = true; ok.textContent = "Speichert …";
+        try {
+          const outfitId = oid || id();
+          const o = Object.assign({}, alt || {}, {
+            name: name.value.trim() || "Look vom " + new Date((datum.value || heute()) + "T12:00:00").toLocaleDateString("de-CH", { day: "numeric", month: "numeric" }),
+            datum: datum.value || heute(),
+            notiz: notiz.value.trim(),
+            wetter: neu.wetter, temperatur: neu.temperatur, tags: neu.tags,
+            teile, erstellt: alt ? alt.erstellt : Date.now(),
+          });
+          if (foto) { const bid = id(); await bildSpeichern(bid, foto); o.foto = "bild:" + bid; }
+          daten.outfits[outfitId] = o;
+          await speichern("outfits/" + outfitId, o);
+          schliessen();
+          if (!alt) { ui.seite = "lookbook"; ui.filter = { wetter: [], temperatur: [], tags: [] }; }
+          anzeigen();
+          toast(alt ? "Gespeichert." : "Im Lookbook gespeichert.");
+        } catch (f) {
+          fehler.textContent = f.message; ok.disabled = false; ok.textContent = "Nochmals versuchen";
+        }
+      };
+      inhalt.appendChild(ok);
+    }
+
+    function outfitDetailSheet(oid) {
+      const o = daten.outfits[oid];
+      if (!o) return;
+      const { inhalt, schliessen } = sheet(o.name || "Look", datumText(o.datum));
+      inhalt.appendChild(collage(o));
+      if (o.notiz) inhalt.appendChild(el("p", "", o.notiz));
+      const tags = tagPills(o);
+      if (tags.childNodes.length) inhalt.appendChild(tags);
+      const teileBox = el("div");
+      teileBox.appendChild(el("div", "caption", "Teile in diesem Outfit"));
+      (o.teile || []).forEach((tid) => {
+        const t = daten.teile[tid];
+        const z = el("div", "liste-zeile");
+        z.append(el("span", "", t ? t.name : "(nicht mehr im Schrank)"), el("span", "caption gedaempft", t ? (KAT[t.kategorie] || {}).name : ""));
+        teileBox.appendChild(z);
+      });
+      inhalt.appendChild(teileBox);
+      const nochmals = el("button", "btn breit", "Nochmals anziehen");
+      nochmals.onclick = () => outfitAnziehen((o.teile || []).filter((x) => daten.teile[x]));
+      const reihe = el("div", "btn-reihe");
+      const bearbeiten = el("button", "btn outline", "Bearbeiten");
+      bearbeiten.onclick = () => { schliessen(); outfitSpeichernSheet(oid); };
+      const loeschen = el("button", "btn gefahr", "Löschen");
+      loeschen.onclick = async () => {
+        if (!(await bestaetigen("Diesen Look aus dem Lookbook löschen?", "Löschen"))) return;
+        if (o.foto) bildLoeschen(o.foto.slice(5));
+        delete daten.outfits[oid];
+        speichern("outfits/" + oid, null);
+        schliessen(); anzeigen(); toast("Gelöscht.");
+      };
+      reihe.append(bearbeiten, loeschen);
+      inhalt.append(nochmals, reihe);
+    }
+
+    function profilSheet() {
+      const { inhalt, schliessen } = sheet("Profil", cloudAktiv() ? geraet.konto.email : "Nur auf diesem Gerät");
+      const nameFeld = el("label", "feld");
+      const name = el("input"); name.value = daten.profil.name || ""; name.placeholder = "Dein Vorname"; name.maxLength = 40;
+      nameFeld.append(el("span", "caption", "Name"), name);
+      inhalt.appendChild(nameFeld);
+
+
+
+      const ok = el("button", "btn breit", "Speichern");
+      ok.onclick = () => {
+        daten.profil.name = name.value.trim();
+        speichern("profil", daten.profil);
+        schliessen(); anzeigen(); toast("Gespeichert.");
+      };
+      inhalt.appendChild(ok);
+
+      const stats = el("div");
+      const z1 = el("div", "liste-zeile"); z1.append(el("span", "", "Teile im Schrank"), el("span", "label", String(liste(daten.teile).length)));
+      const z2 = el("div", "liste-zeile"); z2.append(el("span", "", "Looks im Lookbook"), el("span", "label", String(liste(daten.outfits).length)));
+      stats.append(z1, z2);
+      const hatVorlagen = liste(daten.teile).some((t) => t.vorlage);
+      const z3 = el("div", "liste-zeile");
+      const vb = el("button", "btn klein outline", hatVorlagen ? "Entfernen" : "Laden");
+      vb.onclick = async () => {
+        if (hatVorlagen) { if (!(await bestaetigen("Alle Beispiel-Kleider aus dem Schrank entfernen? Deine eigenen Teile bleiben.", "Entfernen"))) return; vorlagenEntfernen(); }
+        else vorlagenLaden();
+        schliessen(); anzeigen();
+      };
+      z3.append(el("span", "", "Beispiel-Kleider"), vb);
+      stats.appendChild(z3);
+      inhalt.appendChild(stats);
+
+      if (cloudAktiv()) {
+        const ab = el("button", "btn outline breit", "Abmelden");
+        ab.onclick = async () => { if (await bestaetigen("Abmelden? Deine Kleider bleiben in deinem Konto gespeichert.", "Abmelden")) abmelden(); };
+        inhalt.appendChild(ab);
+      } else {
+        inhalt.appendChild(el("p", "klein gedaempft", "Du nutzt Selkie gerade ohne Konto. Alles bleibt nur in diesem Browser gespeichert."));
+        const wechsel = el("button", "btn outline breit", "Mit Konto anmelden");
+        wechsel.onclick = async () => {
+          if (!(await bestaetigen("Zur Anmeldung wechseln? Was du ohne Konto erfasst hast, wird dabei nicht übernommen.", "Wechseln"))) return;
+          geraet.modus = null; geraetSpeichern();
+          try { localStorage.removeItem(DATEN_KEY); } catch (f) { /* egal */ }
+          location.reload();
+        };
+        inhalt.appendChild(wechsel);
+      }
+    }
+
+    // ---------- Start / Anmeldung ----------
+    function startSeite() {
+      const s = el("div", "start");
+      const kopf = el("div", "start-kopf");
+      kopf.appendChild(el("div", "caption", "Selkie · My Style"));
+      const mh = el("h1", "masthead");
+      mh.append(document.createTextNode("The way"), el("em", "", "she wears"), document.createTextNode("it"));
+      kopf.appendChild(mh);
+      kopf.appendChild(el("p", "unterzeile", "Dein Schrank, deine Outfits, dein Lookbook. Dress me."));
+      const figuren = el("div", "start-figuren");
+      ["frau", "mann"].forEach((f) => { const i = el("img"); i.src = "assets/mannequin-" + f + ".png"; i.alt = ""; figuren.appendChild(i); });
+      kopf.appendChild(figuren);
+      s.appendChild(kopf);
+
+      const form = el("div", "start-form");
+      s.appendChild(form);
+      app.appendChild(s);
+
+      const kontoBereit = !!(geraet.konto.dbUrl && geraet.konto.apiKey);
+      if (kontoBereit) anmeldeFormular(form);
+      else einrichtenAuswahl(form);
+    }
+
+    function anmeldeFormular(form) {
+      let modus = "anmelden";
+      function zeichnen() {
+        form.innerHTML = "";
+        const um = el("div", "umschalter");
+        [["anmelden", "Anmelden"], ["registrieren", "Neues Konto"]].forEach(([m, t]) => {
+          const b = el("button", modus === m ? "aktiv" : "", t);
+          b.onclick = () => { modus = m; zeichnen(); };
+          um.appendChild(b);
+        });
+        form.appendChild(um);
+        const nameFeld = el("label", "feld");
+        const name = el("input"); name.placeholder = "Dein Vorname"; name.autocomplete = "given-name";
+        nameFeld.append(el("span", "caption", "Vorname"), name);
+        if (modus === "registrieren") form.appendChild(nameFeld);
+        const mailFeld = el("label", "feld");
+        const mail = el("input"); mail.type = "email"; mail.autocomplete = "email"; mail.placeholder = "name@mail.ch";
+        mailFeld.append(el("span", "caption", "E-Mail"), mail);
+        const pwFeld = el("label", "feld");
+        const pw = el("input"); pw.type = "password"; pw.autocomplete = modus === "anmelden" ? "current-password" : "new-password"; pw.placeholder = modus === "anmelden" ? "Passwort" : "mind. 6 Zeichen";
+        pwFeld.append(el("span", "caption", "Passwort"), pw);
+        form.append(mailFeld, pwFeld);
+        const fehler = el("p", "fehler-text");
+        form.appendChild(fehler);
+        const ok = el("button", "btn breit", modus === "anmelden" ? "Anmelden" : "Konto erstellen");
+        ok.onclick = async () => {
+          fehler.textContent = "";
+          if (!mail.value.trim() || !pw.value) { fehler.textContent = "Bitte E-Mail und Passwort eingeben."; return; }
+          ok.disabled = true; ok.textContent = "Einen Moment …";
+          try {
+            if (modus === "anmelden") await anmelden(mail.value, pw.value);
+            else await registrieren(mail.value, pw.value);
+            await datenLaden();
+            if (modus === "registrieren" && name.value.trim()) { daten.profil.name = name.value.trim(); speichern("profil", daten.profil); }
+            anzeigen();
+          } catch (f) {
+            fehler.textContent = f.message;
+            ok.disabled = false; ok.textContent = modus === "anmelden" ? "Anmelden" : "Konto erstellen";
+          }
+        };
+        pw.addEventListener("keydown", (e) => { if (e.key === "Enter") ok.click(); });
+        form.appendChild(ok);
+        if (modus === "anmelden") {
+          const vergessen = el("button", "link-btn klein", "Passwort vergessen?");
+          vergessen.onclick = async () => {
+            if (!mail.value.trim()) { fehler.textContent = "Gib zuerst deine E-Mail ein."; return; }
+            try { await authAnfrage("sendOobCode", { requestType: "PASSWORD_RESET", email: mail.value.trim() }); toast("Wir haben dir eine E-Mail geschickt."); }
+            catch (f) { fehler.textContent = f.message; }
+          };
+          form.appendChild(vergessen);
+        }
+        if (!FIREBASE_FEST) {
+          const zurueck = el("button", "link-btn klein", "Firebase-Zugang ändern");
+          zurueck.onclick = () => { geraet.konto.dbUrl = ""; geraet.konto.apiKey = ""; geraetSpeichern(); anzeigen(); };
+          form.appendChild(zurueck);
+        }
+      }
+      zeichnen();
+    }
+
+    function einrichtenAuswahl(form) {
+      form.innerHTML = "";
+      form.appendChild(el("h2", "title-italic", "Willkommen"));
+      form.appendChild(el("p", "klein", "Damit jede Person ihren eigenen Schrank auf allen Geräten hat, braucht Selkie einen kostenlosen Speicher mit Anmeldung (Firebase). Du kannst die App aber sofort ausprobieren."));
+      const probieren = el("button", "btn breit", "Ohne Konto ausprobieren");
+      probieren.onclick = async () => { geraet.modus = "lokal"; geraetSpeichern(); await datenLaden(); anzeigen(); };
+      const einrichten = el("button", "btn outline breit", "Firebase einrichten");
+      einrichten.onclick = () => firebaseFormular(form);
+      form.append(probieren, einrichten);
+    }
+
+    function firebaseFormular(form) {
+      form.innerHTML = "";
+      form.appendChild(el("h2", "title-italic", "Firebase einrichten"));
+      const ol = el("ol", "schritte");
+      [
+        "Auf console.firebase.google.com ein neues Projekt anlegen, z. B. «selkie».",
+        "«Build» → «Authentication» → «Get started» → «E-Mail/Passwort» einschalten.",
+        "«Build» → «Realtime Database» → «Datenbank erstellen» (Standort Europa, gesperrter Modus).",
+        "Bei «Regeln» den Text unten einfügen und veröffentlichen.",
+        "Projekteinstellungen (Zahnrad) → «Allgemein»: Den Web-API-Schlüssel kopieren. Gibt es noch keine Web-App, zuerst eine anlegen (Symbol </>).",
+      ].forEach((t) => ol.appendChild(el("li", "", t)));
+      form.appendChild(ol);
+      const regeln = el("pre", "code", JSON.stringify({ rules: { selkie: { $uid: { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" } } } }, null, 2));
+      form.appendChild(regeln);
+      const urlFeld = el("label", "feld");
+      const url = el("input"); url.placeholder = "https://….firebasedatabase.app";
+      urlFeld.append(el("span", "caption", "Adresse der Datenbank"), url);
+      const keyFeld = el("label", "feld");
+      const key = el("input"); key.placeholder = "AIza…";
+      keyFeld.append(el("span", "caption", "Web-API-Schlüssel"), key);
+      const fehler = el("p", "fehler-text");
+      const ok = el("button", "btn breit", "Weiter zur Anmeldung");
+      ok.onclick = () => {
+        const u = url.value.trim().replace(/\/+$/, "");
+        const k = key.value.trim();
+        if (!/^https:\/\/.+\.(firebasedatabase\.app|firebaseio\.com)$/.test(u)) { fehler.textContent = "Die Adresse muss mit https:// beginnen und auf firebasedatabase.app oder firebaseio.com enden."; return; }
+        if (k.length < 20) { fehler.textContent = "Der Web-API-Schlüssel sieht nicht vollständig aus."; return; }
+        geraet.konto.dbUrl = u; geraet.konto.apiKey = k; geraetSpeichern();
+        anzeigen();
+      };
+      const zurueck = el("button", "link-btn klein", "Zurück");
+      zurueck.onclick = () => einrichtenAuswahl(form);
+      form.append(urlFeld, keyFeld, fehler, ok, zurueck);
+    }
+
+    // ---------- Start ----------
+    (async function start() {
+      if (geraet.modus) await datenLaden();
+      anzeigen();
+    })();
+  </script>
+</body>
 </html>
