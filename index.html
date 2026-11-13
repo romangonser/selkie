@@ -206,10 +206,6 @@
     #dressme { display: flex; flex-direction: column; overflow: hidden; }
     .topbar + .seite-inhalt { padding-top: 0; }
     .buehne { position: relative; flex: 1; min-height: 0; overflow: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-    /* Deko-Kreise: wandern langsam an wechselnde Orte am Rand und wechseln die Farbe */
-    .buehne .deko { position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0.9;
-      transition: left 9s ease-in-out, top 9s ease-in-out, width 9s ease-in-out, height 9s ease-in-out, background-color 6s ease; }
-    @media (prefers-reduced-motion: reduce) { .buehne .deko { transition: none; } }
     .acc-reihe { position: absolute; left: 56px; right: 56px; bottom: 6px; height: 54px; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
     .acc-reihe img { height: 46px; width: 46px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(9,21,22,0.15)); }
     .acc-reihe .mehr { font-size: 12px; font-weight: 500; }
@@ -370,7 +366,8 @@
       return leer;
     }
     function geraetSpeichern() {
-      try { localStorage.setItem(GERAET_KEY, JSON.stringify(geraet)); } catch (f) { /* Speicher voll */ }
+      try { localStorage.setItem(GERAET_KEY, JSON.stringify(geraet)); }
+      catch (f) { toast("Die Anmeldung konnte nicht gespeichert werden (Speicher voll oder blockiert) – du wirst beim nächsten Laden evtl. abgemeldet."); }
     }
     if (FIREBASE_FEST) { geraet.konto.dbUrl = FIREBASE_FEST.dbUrl; geraet.konto.apiKey = FIREBASE_FEST.apiKey; }
 
@@ -393,7 +390,6 @@
       w.innerHTML = '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + pfad + "</svg>";
       return w.firstChild;
     }
-    const SVG_FILTER = '<path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="#f4f1ef"/><circle cx="16" cy="12" r="2" fill="#f4f1ef"/><circle cx="10" cy="18" r="2" fill="#f4f1ef"/>';
     const SVG_ZUFALL = '<path d="M3 7h3.5c2 0 3.2 1 4.3 2.7l2.4 4.6c1.1 1.7 2.3 2.7 4.3 2.7H21"/><path d="M3 17h3.5c1.4 0 2.4-.5 3.3-1.4M13.9 8.4c.9-.9 1.9-1.4 3.3-1.4H21"/><path d="M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/>';
     function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
     function liste(obj) { return Object.entries(obj || {}).map(([k, v]) => Object.assign({ id: k }, v)); }
@@ -444,7 +440,7 @@
       }
       return {
         get: (k) => tx("readonly", (s) => s.get(k)).catch(() => null),
-        put: (k, v) => tx("readwrite", (s) => s.put(v, k)).catch(() => null),
+        put: (k, v) => tx("readwrite", (s) => s.put(v, k)),
         del: (k) => tx("readwrite", (s) => s.delete(k)).catch(() => null),
       };
     })();
@@ -530,7 +526,7 @@
 
     async function bildSpeichern(bildId, dataUrl) {
       bildCache.set(bildId, dataUrl);
-      await idb.put(bildId, dataUrl);
+      try { await idb.put(bildId, dataUrl); } catch (f) { throw new Error("Das Foto konnte nicht gespeichert werden (Speicher voll oder blockiert)."); }
       if (cloudAktiv()) await dbAnfrage("PUT", "bilder/" + bildId, dataUrl);
     }
     async function bildLoeschen(bildId) {
@@ -660,11 +656,16 @@
     function lokalSichern() {
       try { localStorage.setItem(DATEN_KEY, JSON.stringify(daten)); } catch (f) { /* voll */ }
     }
+    // Gibt true zurück, wenn in der Cloud (oder gar nicht, weil kein Konto aktiv ist) gespeichert wurde,
+    // und false bei einem Cloud-Fehler (der schon per Toast gemeldet wurde) – so können Aufrufer,
+    // die direkt danach einen eigenen Erfolgs-Toast zeigen, diesen bei einem Fehler weglassen,
+    // statt den gerade gezeigten Fehler sofort wieder zu überschreiben.
     function speichern(pfad, wert) {
       lokalSichern();
-      if (!cloudAktiv()) return Promise.resolve();
+      if (!cloudAktiv()) return Promise.resolve(true);
       return dbAnfrage(wert === null ? "DELETE" : "PUT", "daten/" + pfad, wert === null ? undefined : wert)
-        .catch((f) => toast(f.message));
+        .then(() => true)
+        .catch((f) => { toast(f.message); return false; });
     }
 
     async function datenLaden() {
@@ -918,48 +919,7 @@
         const ids = teileFuerGruppe(g).map((t) => t.id);
         if (!ui.auswahl[g] || !ids.includes(ui.auswahl[g])) ui.auswahl[g] = ids[0] || null;
       });
-      ui.auswahl.acc = ui.auswahl.acc.filter((a) => daten.teile[a]);
-    }
-
-    // Deko-Kreise: 2–3 Kreise, die halb über den Bühnenrand ragen. Alle paar Sekunden wandern sie
-    // an einen neuen zufälligen Ort am Rand und bekommen eine neue Farbe aus der Palette.
-    const KREIS_FARBEN = ["#a18443", "#dcb8bb", "#8686a2", "#e2dbd3", "#c9b27a", "#b9b8cc"];
-    let kreisTimer = null;
-    function kreiseStarten(buehne) {
-      clearInterval(kreisTimer);
-      const kreise = [0, 1, 2].map(() => { const k = el("span", "deko"); buehne.appendChild(k); return k; });
-      function randPunkt(i) {
-        const W = buehne.clientWidth || 400, H = buehne.clientHeight || 600;
-        const d = 120 + Math.random() * 110;
-        // Kreis i bevorzugt eine eigene Seite, damit sie sich nicht stapeln
-        const seite = (i + Math.floor(Math.random() * 2) * 2) % 4;   // 0 oben, 1 rechts, 2 unten, 3 links
-        const entlang = Math.random();
-        let x, y;
-        if (seite === 0) { x = entlang * W; y = 0; }
-        else if (seite === 1) { x = W; y = entlang * H; }
-        else if (seite === 2) { x = entlang * W; y = H; }
-        else { x = 0; y = entlang * H; }
-        return { left: x - d / 2, top: y - d / 2, d };
-      }
-      function bewegen() {
-        if (!buehne.isConnected) { clearInterval(kreisTimer); return; }
-        const farben = KREIS_FARBEN.slice().sort(() => Math.random() - 0.5);
-        kreise.forEach((k, i) => {
-          if (i === 2 && Math.random() < 0.4) { k.style.opacity = "0"; return; }   // manchmal nur zwei Kreise
-          const p = randPunkt(i);
-          k.style.opacity = "";
-          k.style.left = p.left + "px"; k.style.top = p.top + "px";
-          k.style.width = p.d + "px"; k.style.height = p.d + "px";
-          k.style.backgroundColor = farben[i];
-        });
-      }
-      // erste Position ohne Animation, danach alle 10 Sekunden weiter
-      kreise.forEach((k) => { k.style.transition = "none"; });
-      requestAnimationFrame(() => {
-        bewegen();
-        requestAnimationFrame(() => kreise.forEach((k) => { k.style.transition = ""; }));
-      });
-      if (!window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) kreisTimer = setInterval(bewegen, 10000);
+      ui.auswahl.acc = ui.auswahl.acc.filter((a) => daten.teile[a] && passtFilter(daten.teile[a]));
     }
 
     function dressMeSeite() {
@@ -1421,6 +1381,14 @@
       zeichnen();
       return box;
     }
+    // Beschriftetes Eingabefeld: <label class="feld"><span class="caption">text</span>{input}</label>.
+    // Das input-/textarea-Element selbst (Typ, Platzhalter, Wert, …) konfiguriert der Aufrufer weiterhin.
+    function feld(labelText, input) {
+      const wrap = el("label", "feld");
+      wrap.append(el("span", "caption", labelText), input);
+      return wrap;
+    }
+
     function gruppe(titel, inhalt, hinweis) {
       const g = el("div", "chip-gruppe");
       const k = el("div", "caption", titel);
@@ -1488,10 +1456,10 @@
       inhalt.appendChild(el("p", "klein gedaempft", getragen ? "In " + getragen + (getragen === 1 ? " Outfit" : " Outfits") + " im Lookbook." : "Noch in keinem Outfit im Lookbook."));
       const anziehen = el("button", "btn breit", "In Dress Me anziehen");
       anziehen.onclick = () => {
-        const ids = aktuelleTeile().filter((x) => {
-          const a = daten.teile[x];
-          return a && a.kategorie !== t.kategorie && !(gruppeVon(a) === gruppeVon(t) && gruppeVon(t) !== "acc");
-        });
+        const gruppe = gruppeVon(t);
+        // Accessoires ergänzen sich (mehrere gleichzeitig tragbar); bei allem anderen ersetzt
+        // das neue Teil nur, was in derselben Gruppe sitzt (z. B. Oberteil ersetzt Oberteil).
+        const ids = aktuelleTeile().filter((x) => x !== tid && (gruppe === "acc" || gruppeVon(daten.teile[x]) !== gruppe));
         outfitAnziehen(ids.concat(tid));
       };
       const reihe = el("div", "btn-reihe");
@@ -1579,10 +1547,8 @@
       let neuesFoto = null;
       inhalt.appendChild(fotoWaehler(alt ? alt.bild : null, (d) => { neuesFoto = d; }, true));
 
-      const nameFeld = el("label", "feld");
       const name = el("input"); name.placeholder = "z. B. Trenchcoat Camel"; name.value = neu.name; name.maxLength = 60;
-      nameFeld.append(el("span", "caption", "Name"), name);
-      inhalt.appendChild(nameFeld);
+      inhalt.appendChild(feld("Name", name));
 
       const kats = el("div", "kat-raster");
       function katZeichnen() {
@@ -1623,11 +1589,11 @@
           const teil = Object.assign({}, alt || {}, neu, { bild, erstellt: alt ? alt.erstellt : Date.now() });
           if (neuesFoto) { delete teil.vorlage; teil.freigestellt = neuesFoto.freigestellt; }
           daten.teile[teilId] = teil;
-          await speichern("teile/" + teilId, teil);
+          const gesichert = await speichern("teile/" + teilId, teil);
           schliessen();
           ui.schrankKat = "alle";
           anzeigen();
-          toast(alt ? "Gespeichert." : "«" + teil.name + "» liegt jetzt im Schrank.");
+          if (gesichert) toast(alt ? "Gespeichert." : "«" + teil.name + "» liegt jetzt im Schrank.");
         } catch (f) {
           fehler.textContent = f.message;
           ok.disabled = false; ok.textContent = "Nochmals versuchen";
@@ -1654,20 +1620,14 @@
       let foto = null;
       inhalt.appendChild(collage({ teile }));
 
-      const nameFeld = el("label", "feld");
       const name = el("input"); name.placeholder = "z. B. Büro Montag"; name.value = neu.name; name.maxLength = 60;
-      nameFeld.append(el("span", "caption", "Name des Looks"), name);
-      const datumFeld = el("label", "feld");
       const datum = el("input"); datum.type = "date"; datum.value = neu.datum;
-      datumFeld.append(el("span", "caption", "Getragen am"), datum);
-      inhalt.append(nameFeld, datumFeld);
+      inhalt.append(feld("Name des Looks", name), feld("Getragen am", datum));
       inhalt.appendChild(gruppe("Wetter", auswahlChips(WETTER, neu.wetter, true, (v) => { neu.wetter = v; })));
       inhalt.appendChild(gruppe("Temperatur", auswahlChips(TEMPERATUR, neu.temperatur, true, (v) => { neu.temperatur = v; })));
       inhalt.appendChild(gruppe("Eigene Tags", tagAuswahl(neu.tags, (v) => { neu.tags = v; })));
-      const notizFeld = el("label", "feld");
       const notiz = el("textarea"); notiz.placeholder = "z. B. mit brauner Uhr tragen"; notiz.value = neu.notiz;
-      notizFeld.append(el("span", "caption", "Notiz"), notiz);
-      inhalt.appendChild(notizFeld);
+      inhalt.appendChild(feld("Notiz", notiz));
       if (!alt) inhalt.appendChild(gruppe("Foto vom Outfit (optional)", fotoWaehler(null, (d) => { foto = d.data; })));
 
       const fehler = el("p", "fehler-text");
@@ -1686,11 +1646,11 @@
           });
           if (foto) { const bid = id(); await bildSpeichern(bid, foto); o.foto = "bild:" + bid; }
           daten.outfits[outfitId] = o;
-          await speichern("outfits/" + outfitId, o);
+          const gesichert = await speichern("outfits/" + outfitId, o);
           schliessen();
           if (!alt) { ui.seite = "lookbook"; ui.filter = { wetter: [], temperatur: [], tags: [] }; }
           anzeigen();
-          toast(alt ? "Gespeichert." : "Im Lookbook gespeichert.");
+          if (gesichert) toast(alt ? "Gespeichert." : "Im Lookbook gespeichert.");
         } catch (f) {
           fehler.textContent = f.message; ok.disabled = false; ok.textContent = "Nochmals versuchen";
         }
@@ -1734,10 +1694,8 @@
 
     function profilSheet() {
       const { inhalt, schliessen } = sheet("Profil", cloudAktiv() ? geraet.konto.email : "Nur auf diesem Gerät");
-      const nameFeld = el("label", "feld");
       const name = el("input"); name.value = daten.profil.name || ""; name.placeholder = "Dein Vorname"; name.maxLength = 40;
-      nameFeld.append(el("span", "caption", "Name"), name);
-      inhalt.appendChild(nameFeld);
+      inhalt.appendChild(feld("Name", name));
 
 
 
@@ -1816,17 +1774,11 @@
           um.appendChild(b);
         });
         form.appendChild(um);
-        const nameFeld = el("label", "feld");
         const name = el("input"); name.placeholder = "Dein Vorname"; name.autocomplete = "given-name";
-        nameFeld.append(el("span", "caption", "Vorname"), name);
-        if (modus === "registrieren") form.appendChild(nameFeld);
-        const mailFeld = el("label", "feld");
+        if (modus === "registrieren") form.appendChild(feld("Vorname", name));
         const mail = el("input"); mail.type = "email"; mail.autocomplete = "email"; mail.placeholder = "name@mail.ch";
-        mailFeld.append(el("span", "caption", "E-Mail"), mail);
-        const pwFeld = el("label", "feld");
         const pw = el("input"); pw.type = "password"; pw.autocomplete = modus === "anmelden" ? "current-password" : "new-password"; pw.placeholder = modus === "anmelden" ? "Passwort" : "mind. 6 Zeichen";
-        pwFeld.append(el("span", "caption", "Passwort"), pw);
-        form.append(mailFeld, pwFeld);
+        form.append(feld("E-Mail", mail), feld("Passwort", pw));
         const fehler = el("p", "fehler-text");
         form.appendChild(fehler);
         const ok = el("button", "btn breit", modus === "anmelden" ? "Anmelden" : "Konto erstellen");
@@ -1890,12 +1842,10 @@
       form.appendChild(ol);
       const regeln = el("pre", "code", JSON.stringify({ rules: { selkie: { $uid: { ".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.uid === $uid" } } } }, null, 2));
       form.appendChild(regeln);
-      const urlFeld = el("label", "feld");
       const url = el("input"); url.placeholder = "https://….firebasedatabase.app";
-      urlFeld.append(el("span", "caption", "Adresse der Datenbank"), url);
-      const keyFeld = el("label", "feld");
       const key = el("input"); key.placeholder = "AIza…";
-      keyFeld.append(el("span", "caption", "Web-API-Schlüssel"), key);
+      const urlFeld = feld("Adresse der Datenbank", url);
+      const keyFeld = feld("Web-API-Schlüssel", key);
       const fehler = el("p", "fehler-text");
       const ok = el("button", "btn breit", "Weiter zur Anmeldung");
       ok.onclick = () => {
