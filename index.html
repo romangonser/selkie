@@ -219,7 +219,7 @@
     @keyframes reinLinks { from { opacity: 0; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
     @keyframes reinRechts { from { opacity: 0; translate: 18px 0; } to { opacity: 1; translate: 0 0; } }
     .steuer { position: absolute; left: 0; right: 0; height: 0; pointer-events: none; z-index: 5; }
-    .steuer .pfeil { pointer-events: auto; position: absolute; top: 0; transform: translateY(-50%); width: 36px; height: 36px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--bg-app); display: flex; align-items: center; justify-content: center; }
+    .steuer .pfeil { pointer-events: auto; position: absolute; top: 0; transform: translateY(-50%); width: 36px; height: 36px; border: none; /* temporär ohne Kontur */ border-radius: var(--radius); background: transparent; display: flex; align-items: center; justify-content: center; }
     .steuer .pfeil.links { left: 10px; }
     .steuer .pfeil.rechts { right: 10px; }
     .steuer .typ { pointer-events: auto; position: absolute; top: 26px; width: 40px; height: 40px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
