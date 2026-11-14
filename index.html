@@ -90,7 +90,6 @@
       #app { box-sizing: content-box; width: var(--app-w); height: 874px; max-height: calc(100dvh - 60px); border: 6px solid var(--ink); border-radius: 56px; }
     }
 
-    .topbar .ort { font-family: var(--font-display); font-style: italic; font-size: 20px; line-height: 1.1; white-space: nowrap; }
     .topbar {
       flex: none;
       display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px;
@@ -105,6 +104,7 @@
       background: var(--bg-app);
     }
     .icon-btn:active { background: var(--stone); }
+    .profil-btn { width: 44px; height: 44px; border-radius: 50%; margin-left: auto; }
     .icon-btn .punkt { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--ochre); border: 2px solid var(--bg-app); }
 
     main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
@@ -116,6 +116,7 @@
       -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
     .ic-16 { width: 16px; height: 16px; }
     .ic-20 { width: 20px; height: 20px; }
+    .ic-28 { width: 28px; height: 28px; }
     .ic-32 { width: 32px; height: 32px; }
     .ic-40 { width: 40px; height: 40px; }
 
@@ -241,17 +242,20 @@
 
     /* ---------- Bottom-Sheet ---------- */
     .sheet-hg { position: fixed; inset: 0; z-index: 50; background: rgba(9,21,22,0.35); display: flex; align-items: flex-end; justify-content: center; animation: hgEin 0.2s ease; }
-    /* Feste Höhe statt am Inhalt bemessen: jedes Sheet ist immer 66% der Bildschirmhöhe, unabhängig
-       davon, wie viele Teile/Felder drin sind. Überschüssiger Inhalt scrollt innerhalb des Sheets. */
-    .sheet { width: 100%; max-width: 440px; height: 80dvh; overflow-y: auto; background: var(--bg-app); border-radius: 14px 14px 0 0; border-top: 1px solid var(--ink);
-      padding: 10px var(--space-l) calc(24px + env(safe-area-inset-bottom)); animation: sheetEin 0.28s cubic-bezier(.2,.8,.2,1); }
-    .sheet-griff { width: 36px; height: 4px; border-radius: 2px; background: var(--linie); margin: 0 auto 12px; }
-    .sheet-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    /* Feste Höhe statt am Inhalt bemessen: jedes Sheet ist immer 80% der Bildschirmhöhe, unabhängig
+       davon, wie viele Teile/Felder drin sind. Nur .sheet-inhalt scrollt; Kopf (und ein evtl. Fuss)
+       bleiben so immer sichtbar, ohne Überlagerungstricks. */
+    .sheet { width: 100%; max-width: 440px; height: 80dvh; display: flex; flex-direction: column; overflow: hidden;
+      background: var(--bg-app); border-radius: 14px 14px 0 0; border-top: 1px solid var(--ink);
+      padding: 10px var(--space-l) 0; animation: sheetEin 0.28s cubic-bezier(.2,.8,.2,1); }
+    .sheet-griff { width: 36px; height: 4px; border-radius: 2px; background: var(--linie); margin: 0 auto 12px; flex: none; }
+    .sheet-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex: none; }
     .sheet-kopf .display { font-size: 30px; }
-    .sheet-inhalt { display: flex; flex-direction: column; gap: 20px; }
-    /* Bleibt beim Scrollen im Sheet immer sichtbar am unteren Rand (eigener Hintergrund, damit
-       durchscrollender Inhalt nicht durchscheint). */
-    .sheet-cta { position: sticky; bottom: 0; background: var(--bg-app); margin: 0 calc(var(--space-l) * -1) calc(-24px - env(safe-area-inset-bottom));
+    .sheet-inhalt { display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0; overflow-y: auto;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+    /* Eigener, fixer Fuss unterhalb von .sheet-inhalt (nicht Teil des scrollenden Bereichs) –
+       z. B. der "Übernehmen"-Knopf, der beim Scrollen der Kacheln immer sichtbar bleiben soll. */
+    .sheet-cta { flex: none; margin: 0 calc(var(--space-l) * -1); background: var(--bg-app); border-top: 1px solid var(--linie);
       padding: 14px var(--space-l) calc(24px + env(safe-area-inset-bottom)); }
     @keyframes sheetEin { from { transform: translateY(100%); } to { transform: none; } }
     @keyframes hgEin { from { opacity: 0; } to { opacity: 1; } }
@@ -848,11 +852,10 @@
 
     function topbar() {
       const bar = el("header", "topbar");
-      const profil = el("button", "icon-btn");
+      const profil = el("button", "icon-btn profil-btn");
       profil.setAttribute("aria-label", "Profil");
-      profil.appendChild(icon("profil"));
+      profil.appendChild(icon("profil", "ic-28"));
       profil.onclick = profilSheet;
-      bar.appendChild(el("div", "ort", ui.seite === "dressme" ? "Dress me" : ui.seite === "schrank" ? "Kleiderschrank" : "Lookbook"));
       if (ui.seite === "schrank") bar.appendChild(profil);   // Profil nur im Kleiderschrank
       return bar;
     }
@@ -931,6 +934,10 @@
       auswahlPruefen();
       const s = el("section", "seite");
       s.id = "dressme";
+      const kopf = el("div");
+      kopf.style.cssText = "padding: 0 var(--space-l) 4px;";
+      kopf.appendChild(el("h1", "display", "Dress me"));
+      s.appendChild(kopf);
       const buehne = el("div", "buehne");
 
 
@@ -1200,8 +1207,7 @@
       s.appendChild(inhalt);
 
       const kopf = el("div");
-      kopf.append(el("div", "caption", gruss() + (daten.profil.name ? ", " + daten.profil.name : "")), el("h1", "display", "Das ist dein Schrank"));
-      kopf.firstChild.style.marginBottom = "6px";
+      kopf.append(el("h1", "display", "Dein Schrank"));
       inhalt.appendChild(kopf);
 
 
@@ -1321,8 +1327,7 @@
       const inhalt = el("div", "seite-inhalt");
       s.appendChild(inhalt);
       const kopf = el("div");
-      kopf.append(el("div", "caption", "Getragen & geliebt"), el("h1", "display", "Dein Lookbook"));
-      kopf.firstChild.style.marginBottom = "6px";
+      kopf.append(el("h1", "display", "Dein Lookbook"));
       inhalt.appendChild(kopf);
       inhalt.appendChild(wetterChips());
 
@@ -1397,7 +1402,9 @@
       zu.onclick = schliessen;
       hg.addEventListener("click", (e) => { if (e.target === hg) schliessen(); });
       document.body.appendChild(hg);
-      return { inhalt, schliessen, titelEl: t.lastChild };
+      // sheetEl: für einen fixen Fuss (.sheet-cta), der nicht mit .sheet-inhalt mitscrollen soll –
+      // als weiteres Kind von sheetEl anhängen, nicht von inhalt.
+      return { inhalt, schliessen, titelEl: t.lastChild, sheetEl: s };
     }
     // Eigene Rückfrage statt confirm(): funktioniert überall, auch in eingebetteten Vorschauen
     function bestaetigen(frage, jaText) {
@@ -1477,7 +1484,7 @@
     }
 
     function accessoiresSheet() {
-      const { inhalt, schliessen } = sheet("Accessoires", "Dazu kombinieren");
+      const { inhalt, schliessen, sheetEl } = sheet("Accessoires", "Dazu kombinieren");
       const acc = teileSortiert().filter((t) => t.kategorie === "accessoire" && passtFilter(t));
       if (!acc.length) {
         inhalt.appendChild(el("p", "klein", "Noch keine Accessoires" + (filterAktiv() ? " für diesen Filter" : "") + ". Füge im Kleiderschrank welche hinzu (Kategorie «Accessoire»)."));
@@ -1500,7 +1507,7 @@
       ok.onclick = () => { ui.auswahl.acc = gewaehlt; schliessen(); seiteZeichnen(); };
       const fuss = el("div", "sheet-cta");
       fuss.appendChild(ok);
-      inhalt.appendChild(fuss);
+      sheetEl.appendChild(fuss);
     }
 
     function teilDetailSheet(tid) {
