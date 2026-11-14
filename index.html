@@ -222,7 +222,7 @@
     .steuer .pfeil { pointer-events: auto; position: absolute; top: 0; transform: translateY(-50%); width: 36px; height: 36px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--bg-app); display: flex; align-items: center; justify-content: center; }
     .steuer .pfeil.links { left: 10px; }
     .steuer .pfeil.rechts { right: 10px; }
-    .steuer .typ { pointer-events: auto; position: absolute; top: 26px; width: 36px; height: 36px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
+    .steuer .typ { pointer-events: auto; position: absolute; top: 26px; width: 40px; height: 40px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
     .steuer .typ.links { left: 10px; }
     .steuer .typ.rechts { right: 10px; }
     .steuer .typ.aktiv { background: var(--ochre); border-color: var(--ochre); color: var(--white); }
@@ -1018,11 +1018,11 @@
         if (liste.length > 1) {
           const links = el("button", "pfeil links");
           links.setAttribute("aria-label", GRUPPEN[g].titel + ": vorheriges Teil");
-          links.appendChild(icon("links", "ic-20"));
+          links.appendChild(icon("links"));
           links.onclick = () => blaettern(g, -1);
           const rechts = el("button", "pfeil rechts");
           rechts.setAttribute("aria-label", GRUPPEN[g].titel + ": nächstes Teil");
-          rechts.appendChild(icon("rechts", "ic-20"));
+          rechts.appendChild(icon("rechts"));
           rechts.onclick = () => blaettern(g, 1);
           st.append(links, rechts);
         }
@@ -1070,7 +1070,7 @@
         if (accs.length > 4) accReihe.appendChild(el("span", "mehr", "+" + (accs.length - 4)));
       } else {
         const plus = el("span", "btn-tertiaer");
-        plus.append(icon("plus", "ic-16"), document.createTextNode("Accessoire"));
+        plus.append(icon("plus", "ic-16"), document.createTextNode("Accessoires"));
         accReihe.appendChild(plus);
       }
       accReihe.onclick = accessoiresSheet;
