@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "selkie",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "5500"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/static-server.cjs"],
       "port": 5500
     }
   ]

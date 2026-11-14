@@ -176,6 +176,8 @@
     .card-item .meta .title { font-size: 19px; }
     .wetter-mini { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 2px; }
     .wetter-mini .ic { color: var(--lavender); }
+    .mehr-knopf { position: absolute; right: 6px; bottom: 6px; width: 26px; height: 26px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
+    .mehr-knopf:active { background: var(--stone); }
     img.foto { mix-blend-mode: multiply; }
 
     .card-look { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: var(--space-m); padding: var(--space-l);
@@ -222,10 +224,6 @@
     .steuer .pfeil { pointer-events: auto; position: absolute; top: 0; transform: translateY(-50%); width: 36px; height: 36px; border: none; /* temporär ohne Kontur */ border-radius: var(--radius); background: transparent; display: flex; align-items: center; justify-content: center; }
     .steuer .pfeil.links { left: 10px; }
     .steuer .pfeil.rechts { right: 10px; }
-    .steuer .typ { pointer-events: auto; position: absolute; top: 26px; width: 40px; height: 40px; border: 1px solid var(--linie); border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--ink); }
-    .steuer .typ.links { left: 10px; }
-    .steuer .typ.rechts { right: 10px; }
-    .steuer .typ.aktiv { background: var(--ochre); border-color: var(--ochre); color: var(--white); }
     .steuer .pfeil:active { background: var(--stone); }
     .leer-buehne { position: absolute; left: 24px; right: 24px; top: 40%; text-align: center; background: rgba(244,241,239,0.92); border: 1px dashed var(--border-subtle); border-radius: var(--radius); padding: 16px; font-size: 13px; z-index: 6; }
 
@@ -243,12 +241,18 @@
 
     /* ---------- Bottom-Sheet ---------- */
     .sheet-hg { position: fixed; inset: 0; z-index: 50; background: rgba(9,21,22,0.35); display: flex; align-items: flex-end; justify-content: center; animation: hgEin 0.2s ease; }
-    .sheet { width: 100%; max-width: 440px; max-height: 92dvh; overflow-y: auto; background: var(--bg-app); border-radius: 14px 14px 0 0; border-top: 1px solid var(--ink);
+    /* Feste Höhe statt am Inhalt bemessen: jedes Sheet ist immer 66% der Bildschirmhöhe, unabhängig
+       davon, wie viele Teile/Felder drin sind. Überschüssiger Inhalt scrollt innerhalb des Sheets. */
+    .sheet { width: 100%; max-width: 440px; height: 80dvh; overflow-y: auto; background: var(--bg-app); border-radius: 14px 14px 0 0; border-top: 1px solid var(--ink);
       padding: 10px var(--space-l) calc(24px + env(safe-area-inset-bottom)); animation: sheetEin 0.28s cubic-bezier(.2,.8,.2,1); }
     .sheet-griff { width: 36px; height: 4px; border-radius: 2px; background: var(--linie); margin: 0 auto 12px; }
     .sheet-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
     .sheet-kopf .display { font-size: 30px; }
     .sheet-inhalt { display: flex; flex-direction: column; gap: 20px; }
+    /* Bleibt beim Scrollen im Sheet immer sichtbar am unteren Rand (eigener Hintergrund, damit
+       durchscrollender Inhalt nicht durchscheint). */
+    .sheet-cta { position: sticky; bottom: 0; background: var(--bg-app); margin: 0 calc(var(--space-l) * -1) calc(-24px - env(safe-area-inset-bottom));
+      padding: 14px var(--space-l) calc(24px + env(safe-area-inset-bottom)); }
     @keyframes sheetEin { from { transform: translateY(100%); } to { transform: none; } }
     @keyframes hgEin { from { opacity: 0; } to { opacity: 1; } }
 
@@ -391,6 +395,7 @@
       return w.firstChild;
     }
     const SVG_ZUFALL = '<path d="M3 7h3.5c2 0 3.2 1 4.3 2.7l2.4 4.6c1.1 1.7 2.3 2.7 4.3 2.7H21"/><path d="M3 17h3.5c1.4 0 2.4-.5 3.3-1.4M13.9 8.4c.9-.9 1.9-1.4 3.3-1.4H21"/><path d="M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/>';
+    const SVG_MEHR = '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>';
     function id() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
     function liste(obj) { return Object.entries(obj || {}).map(([k, v]) => Object.assign({ id: k }, v)); }
     function toast(text) {
@@ -1003,6 +1008,7 @@
         img.classList.add("lage");
         if (richtung) img.classList.add(richtung > 0 ? "rein-rechts" : "rein-links");
         img.dataset.teil = ui.auswahl[g];
+        img.dataset.gruppe = g;
         img.draggable = false;
         img.alt = t.name;
         buehne.appendChild(img);
@@ -1026,19 +1032,6 @@
           rechts.onclick = () => blaettern(g, 1);
           st.append(links, rechts);
         }
-        // Oberteil: unter den Pfeilen je ein Knopf für nur Shirts (links) oder nur Pullover (rechts)
-        if (g === "oben") {
-          [["shirt", "links", "Nur Shirts"], ["pullover", "rechts", "Nur Pullover"]].forEach(([typ, seite, text]) => {
-            const an = ui.obenTyp === typ;
-            const b = el("button", "typ " + seite + (an ? " aktiv" : ""));
-            b.setAttribute("aria-label", text);
-            b.setAttribute("aria-pressed", an ? "true" : "false");
-            b.title = text;
-            b.appendChild(icon(typ, "ic-20"));
-            b.onclick = () => { ui.obenTyp = an ? "alle" : typ; ui.auswahl.oben = null; auswahlPruefen(); lageZeichnen("oben"); if (lagen.oben) void lagen.oben.offsetWidth; steuerZeichnen("oben"); anordnen(); };
-            st.appendChild(b);
-          });
-        }
         buehne.appendChild(st);
         steuerungen[g] = st;
       }
@@ -1051,6 +1044,61 @@
         lageZeichnen(g, schritt);
         if (lagen[g]) void lagen[g].offsetWidth;   // Startgrösse übernehmen, damit die Animation läuft
         anordnen();
+      }
+
+      // Tipp auf ein Kleidungsstück auf der Bühne: Übersicht aller Teile dieser Gruppe als Kacheln.
+      // Tipp auf eine Kachel übernimmt sie direkt; der Mehr-Knopf unten rechts öffnet die Detailansicht.
+      // Beim Oberteil steht oben zusätzlich der Shirt/Pullover-Filter als Chips (wie die Tags).
+      function teilUebersichtSheet(g) {
+        const { inhalt, schliessen } = sheet(GRUPPEN[g].titel, null);
+        const info = el("p", "caption");
+        const box = el("div");
+        inhalt.append(info, box);
+
+        function zeichnen() {
+          const liste = teileFuerGruppe(g);
+          info.textContent = liste.length + (liste.length === 1 ? " Teil im Schrank" : " Teile im Schrank");
+          box.innerHTML = "";
+          if (!liste.length) {
+            box.appendChild(el("p", "klein gedaempft", "Nichts gefunden. Probier einen anderen Filter."));
+            return;
+          }
+          const raster = el("div", "item-raster");
+          liste.forEach((t) => {
+            raster.appendChild(itemKarte(t, (gewaehlt) => {
+              if (ui.auswahl[g] !== gewaehlt.id) {
+                ui.auswahl[g] = gewaehlt.id;
+                lageZeichnen(g);
+                if (lagen[g]) void lagen[g].offsetWidth;
+                anordnen();
+              }
+              schliessen();
+            }, t.id === ui.auswahl[g]));
+          });
+          box.appendChild(raster);
+        }
+
+        if (g === "oben") {
+          const chips = el("div", "chips");
+          [["alle", "Alle"], ["shirt", "Shirt"], ["pullover", "Pullover"]].forEach(([typ, text]) => {
+            const c = el("button", "chip ohne-icon" + (ui.obenTyp === typ ? " aktiv" : ""), text);
+            c.onclick = () => {
+              ui.obenTyp = typ;
+              ui.auswahl.oben = null;
+              auswahlPruefen();
+              lageZeichnen("oben");
+              if (lagen.oben) void lagen.oben.offsetWidth;
+              steuerZeichnen("oben");
+              anordnen();
+              chips.querySelectorAll(".chip").forEach((x) => x.classList.remove("aktiv"));
+              c.classList.add("aktiv");
+              zeichnen();
+            };
+            chips.appendChild(c);
+          });
+          inhalt.insertBefore(chips, info);
+        }
+        zeichnen();
       }
 
       const fehlend = aktiveGruppen().filter((g) => !teileFuerGruppe(g).length);
@@ -1092,7 +1140,7 @@
           if (g) blaettern(g, dx < 0 ? 1 : -1);
         } else if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
           const img = e.target.closest(".lage");
-          if (img) teilDetailSheet(img.dataset.teil);
+          if (img) teilUebersichtSheet(img.dataset.gruppe);
         }
       });
       buehne.addEventListener("pointercancel", () => { start = null; });
@@ -1222,17 +1270,26 @@
       return box;
     }
 
-    function itemKarte(t) {
-      const k = el("button", "card-item");
+    // wahlCallback: falls gesetzt, wählt ein Tipp auf die Karte das Teil (statt die Detailansicht zu
+    // öffnen) und die Karte bekommt unten rechts einen eigenen Knopf für die Detailansicht.
+    function itemKarte(t, wahlCallback, istGewaehlt) {
+      const k = el("button", "card-item" + (istGewaehlt ? " gewaehlt" : ""));
       const bild = el("div", "bild");
       bild.appendChild(teilBild(t));
       const wm = el("div", "wetter-mini");
       (t.wetter || []).concat(t.temperatur || []).forEach((w) => wm.appendChild(icon(w, "ic-16")));
       bild.appendChild(wm);
+      if (wahlCallback) {
+        const mehr = el("button", "mehr-knopf");
+        mehr.setAttribute("aria-label", t.name + ": Details ansehen");
+        mehr.appendChild(svgIcon(SVG_MEHR, 16));
+        mehr.onclick = (e) => { e.stopPropagation(); teilDetailSheet(t.id); };
+        bild.appendChild(mehr);
+      }
       const meta = el("div", "meta");
       meta.append(el("span", "caption", (KAT[t.kategorie] || {}).name || ""), el("span", "title", t.name));
       k.append(bild, meta);
-      k.onclick = () => teilDetailSheet(t.id);
+      k.onclick = () => (wahlCallback ? wahlCallback(t) : teilDetailSheet(t.id));
       return k;
     }
 
@@ -1441,7 +1498,9 @@
       inhalt.appendChild(raster);
       const ok = el("button", "btn breit", "Übernehmen");
       ok.onclick = () => { ui.auswahl.acc = gewaehlt; schliessen(); seiteZeichnen(); };
-      inhalt.appendChild(ok);
+      const fuss = el("div", "sheet-cta");
+      fuss.appendChild(ok);
+      inhalt.appendChild(fuss);
     }
 
     function teilDetailSheet(tid) {
