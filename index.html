@@ -144,21 +144,38 @@
     .link-btn { border: 0; background: none; padding: 4px 0; }
 
     /* ---------- Chips ---------- */
-    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--space-l) * -1); padding: 0 var(--space-l); }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: -10px calc(var(--space-l) * -1) -10px; padding: 10px var(--space-l); }
     .chips::-webkit-scrollbar { display: none; }
     .chips.umbruch { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
     .chip { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px;
-      border: 1px solid var(--border-strong); background: transparent; font-size: 13px; font-weight: 500; white-space: nowrap; }
+      border: 1px solid var(--border-strong); background: transparent; font-size: 13px; font-weight: 500; white-space: nowrap;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .chip.ohne-icon { padding: 0 14px; }
     .chip.aktiv { background: var(--ink); color: var(--white); }
     .chip.wetter.aktiv { background: var(--lavender-hell); color: var(--ink); border-color: var(--lavender); }
-    .chip.chip-loeschen { border-color: var(--red); }
+    .chip.chip-loeschen, .tag.chip-loeschen { border-color: var(--rose); }
     .chip-loeschen-x { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%;
-      background: var(--red); color: var(--white); display: flex; align-items: center; justify-content: center;
+      background: var(--rose); color: var(--ink); display: flex; align-items: center; justify-content: center;
       font-size: 14px; line-height: 1; }
     .popup-hg { position: fixed; inset: 0; z-index: 70; background: rgba(9, 21, 22, 0.45); display: flex; align-items: center; justify-content: center; padding: var(--space-l); }
     .popup { width: 100%; max-width: 340px; background: var(--bg-app); border-radius: 14px; border: 1px solid var(--ink); padding: var(--space-l); display: flex; flex-direction: column; gap: 14px; }
     .popup .display { font-size: 22px; }
+    .crop-hg { position: fixed; inset: 0; z-index: 80; background: var(--ink); display: flex; flex-direction: column; }
+    .crop-kopf { flex: none; padding: var(--space-l) var(--space-l) var(--space-m); }
+    .crop-kopf .display { color: var(--white); font-size: 22px; margin: 0; }
+    .crop-buehne { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
+    .crop-bild-wrap { position: relative; }
+    .crop-bild { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: none; }
+    .crop-rahmen { position: absolute; border: 2px solid var(--white); box-shadow: 0 0 0 9999px rgba(9, 21, 22, 0.65); touch-action: none; }
+    .crop-griff { position: absolute; width: 26px; height: 26px; margin: -13px; background: var(--white); border-radius: 50%; border: 1px solid var(--ink); touch-action: none; }
+    .crop-griff-nw { top: 0; left: 0; }
+    .crop-griff-ne { top: 0; left: 100%; }
+    .crop-griff-sw { top: 100%; left: 0; }
+    .crop-griff-se { top: 100%; left: 100%; }
+    .crop-fuss { flex: none; display: flex; gap: 10px; padding: var(--space-m) var(--space-l) calc(var(--space-l) + env(safe-area-inset-bottom)); }
+    .crop-fuss .btn { flex: 1; }
+    .crop-fuss .btn { background: var(--white); color: var(--ink); border-color: var(--white); }
+    .crop-fuss .btn.outline { background: transparent; color: var(--white); border-color: var(--white); }
     .btn-tertiaer { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border: 0; background: none; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
     .btn-tertiaer:active { opacity: 0.6; }
     .tag-form { display: flex; align-items: center; gap: 6px; width: 100%; }
@@ -203,7 +220,8 @@
     .collage .stueck.foto-gross { grid-column: span 3; aspect-ratio: 4 / 3; }
     .collage .stueck.foto-gross img { width: 100%; height: 100%; object-fit: cover; }
     .tags { display: flex; flex-wrap: wrap; gap: 6px; position: relative; }
-    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px 4px 6px; border: 1px solid currentColor; border-radius: 999px; }
+    .tag { position: relative; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px 4px 6px; border: 1px solid currentColor; border-radius: 999px;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .tag .ic { width: 14px; height: 14px; }
 
     .reihen-kopf { display: flex; align-items: baseline; justify-content: space-between; }
@@ -270,6 +288,7 @@
     /* ---------- Formulare ---------- */
     .feld { display: flex; flex-direction: column; gap: 6px; }
     .feld input, .feld textarea, .feld select { width: 100%; padding: 13px 14px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--white); font-size: 16px; }
+    .feld input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; }
     .feld textarea { min-height: 76px; resize: vertical; }
     .feld input:focus, .feld textarea:focus { outline: 2px solid var(--ochre); outline-offset: 1px; }
     .fehler-text { color: var(--red); font-size: 13px; margin: 0; }
@@ -486,20 +505,116 @@
       if (d.indexOf("data:image/webp") === 0) return d;
       return mitTransparenz ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", 0.82);
     }
-    async function fotoVerkleinern(datei, max) {
-      return alsDataUrl(leinwand(await fotoLaden(datei), max || 800, true), false);
+    // `quelle` ist ein bereits geladenes Bild oder Canvas (z. B. nach dem Zuschneiden).
+    function fotoVerkleinern(quelle, max) {
+      return alsDataUrl(leinwand(quelle, max || 800, true), false);
     }
     // Hintergrund-Freistellung: KI-Modell (IS-Net, onnxruntime-web, läuft im Browser), siehe freistellen.js.
     // Fällt automatisch auf eine einfache Randfarben-Methode zurück, wenn das Modell nicht geladen werden kann.
-    async function fotoFuerTeil(datei, fortschritt) {
-      const img = await fotoLaden(datei);
-      const normal = alsDataUrl(leinwand(img, 800, true), false);
+    // `quelle` ist ein bereits geladenes Bild oder Canvas (z. B. nach dem Zuschneiden).
+    async function fotoFuerTeil(quelle, fortschritt) {
+      const normal = alsDataUrl(leinwand(quelle, 800, true), false);
       let frei = null;
       try {
-        const erg = await Freisteller.freistellen(img, { fortschritt });
+        const erg = await Freisteller.freistellen(quelle, { fortschritt });
         if (erg) frei = erg.dataUrl;
       } catch (f) { frei = null; }
       return { normal, frei };
+    }
+    // Lässt den Nutzer ein aufgenommenes/ausgewähltes Foto zuschneiden, bevor es weiterverarbeitet wird.
+    // Gibt ein zugeschnittenes Canvas zurück, oder null bei Abbruch.
+    function fotoZuschneiden(img) {
+      return new Promise((resolve) => {
+        const hg = el("div", "crop-hg");
+        const kopf = el("div", "crop-kopf");
+        kopf.appendChild(el("h2", "display", "Zuschneiden"));
+        const buehne = el("div", "crop-buehne");
+        const wrap = el("div", "crop-bild-wrap");
+        img.className = "crop-bild";
+        img.draggable = false;
+        const rahmen = el("div", "crop-rahmen");
+        ["nw", "ne", "sw", "se"].forEach((pos) => rahmen.appendChild(el("span", "crop-griff crop-griff-" + pos)));
+        wrap.append(img, rahmen);
+        buehne.appendChild(wrap);
+        const fuss = el("div", "crop-fuss");
+        const abbrechen = el("button", "btn outline", "Abbrechen");
+        abbrechen.type = "button";
+        const benutzen = el("button", "btn", "Foto benutzen");
+        benutzen.type = "button";
+        fuss.append(abbrechen, benutzen);
+        hg.append(kopf, buehne, fuss);
+        document.body.appendChild(hg);
+
+        let rect = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+        function zeichnen() {
+          rahmen.style.left = rect.x * 100 + "%";
+          rahmen.style.top = rect.y * 100 + "%";
+          rahmen.style.width = rect.w * 100 + "%";
+          rahmen.style.height = rect.h * 100 + "%";
+        }
+        function einpassen() {
+          const bb = buehne.getBoundingClientRect();
+          const skala = Math.min(bb.width / img.naturalWidth, bb.height / img.naturalHeight, 1);
+          wrap.style.width = Math.round(img.naturalWidth * skala) + "px";
+          wrap.style.height = Math.round(img.naturalHeight * skala) + "px";
+          zeichnen();
+        }
+        if (img.complete && img.naturalWidth) einpassen(); else img.onload = einpassen;
+
+        const MIN = 0.12;
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        let modus = null, start = null, startRect = null;
+        function posVon(e) {
+          const b = wrap.getBoundingClientRect();
+          return { x: (e.clientX - b.left) / b.width, y: (e.clientY - b.top) / b.height };
+        }
+        function starten(e, art) {
+          modus = art; start = posVon(e); startRect = Object.assign({}, rect);
+          e.preventDefault(); e.stopPropagation();
+        }
+        rahmen.addEventListener("pointerdown", (e) => { if (e.target === rahmen) starten(e, "verschieben"); });
+        rahmen.querySelectorAll(".crop-griff").forEach((g) => {
+          const art = g.className.match(/crop-griff-(\w\w)/)[1];
+          g.addEventListener("pointerdown", (e) => starten(e, art));
+        });
+        function bewegen(e) {
+          if (!modus) return;
+          const p = posVon(e);
+          const dx = p.x - start.x, dy = p.y - start.y;
+          let { x, y, w, h } = startRect;
+          if (modus === "verschieben") {
+            x = clamp(startRect.x + dx, 0, 1 - startRect.w);
+            y = clamp(startRect.y + dy, 0, 1 - startRect.h);
+          } else {
+            if (modus.includes("n")) { const ny = clamp(startRect.y + dy, 0, startRect.y + startRect.h - MIN); h = startRect.y + startRect.h - ny; y = ny; }
+            if (modus.includes("s")) { h = clamp(startRect.h + dy, MIN, 1 - startRect.y); }
+            if (modus.includes("w")) { const nx = clamp(startRect.x + dx, 0, startRect.x + startRect.w - MIN); w = startRect.x + startRect.w - nx; x = nx; }
+            if (modus.includes("e")) { w = clamp(startRect.w + dx, MIN, 1 - startRect.x); }
+          }
+          rect = { x, y, w, h };
+          zeichnen();
+        }
+        function loslassen() { modus = null; }
+        document.addEventListener("pointermove", bewegen);
+        document.addEventListener("pointerup", loslassen);
+
+        function schliessen(ergebnis) {
+          document.removeEventListener("pointermove", bewegen);
+          document.removeEventListener("pointerup", loslassen);
+          hg.remove();
+          resolve(ergebnis);
+        }
+        abbrechen.onclick = () => schliessen(null);
+        benutzen.onclick = () => {
+          const iw = img.naturalWidth, ih = img.naturalHeight;
+          const sx = Math.round(rect.x * iw), sy = Math.round(rect.y * ih);
+          const sw = Math.max(1, Math.round(rect.w * iw)), sh = Math.max(1, Math.round(rect.h * ih));
+          const c = document.createElement("canvas");
+          c.width = sw; c.height = sh;
+          c.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+          schliessen(c);
+        };
+      });
     }
 
     async function bildSpeichern(bildId, dataUrl) {
@@ -761,33 +876,45 @@
       if ((ui.filter.tags || []).includes(tid)) ui.filter.tags = ui.filter.tags.filter((x) => x !== tid);
       toast("Tag gelöscht.");
     }
-    // Baut einen Chip für einen eigenen Tag. Normaler Klick: wählen/abwählen. Langes Drücken: Chip
-    // wird «scharf» (roter Rand + ×-Knopf). Klick daneben: wieder normal. Klick auf ×: Löschen bestätigen.
-    function eigenerTagChip(t, aktiv, onToggle, onGeloescht, extraKlasse) {
-      const c = el("button", "chip ohne-icon" + (extraKlasse ? " " + extraKlasse : "") + (aktiv ? " aktiv" : ""), t.name);
-      c.type = "button";
+    // Macht einen Chip oder Tag-Pill per langem Drücken «scharf»: rosa Rand + ×-Knopf. Klick daneben
+    // setzt zurück, Klick auf × fragt nach und löscht den Tag überall. Gibt die Entwaffnen-Funktion zurück.
+    function tagLoeschbarMachen(element, tid, onGeloescht) {
       let badge = null;
-      function aussenKlick(e) { if (!c.contains(e.target)) entwaffnen(); }
+      function aussenKlick(e) { if (!element.contains(e.target)) entwaffnen(); }
       function entwaffnen() {
-        c.classList.remove("chip-loeschen");
+        element.classList.remove("chip-loeschen");
         if (badge) { badge.remove(); badge = null; }
         document.removeEventListener("pointerdown", aussenKlick, true);
       }
-      c.onclick = () => { if (badge) { entwaffnen(); return; } onToggle(); };
-      langDruck(c, () => {
+      langDruck(element, () => {
         if (badge) return;
-        c.classList.add("chip-loeschen");
+        element.classList.add("chip-loeschen");
         badge = el("span", "chip-loeschen-x", "×");
         badge.onclick = async (e) => {
           e.stopPropagation();
-          const sicher = await tagLoeschenBestaetigen(t.id);
+          e.preventDefault();
+          const sicher = await tagLoeschenBestaetigen(tid);
           entwaffnen();
-          if (sicher) { tagLoeschenAusfuehren(t.id); onGeloescht(); }
+          if (sicher) { tagLoeschenAusfuehren(tid); onGeloescht(); }
         };
-        c.appendChild(badge);
+        element.appendChild(badge);
         document.addEventListener("pointerdown", aussenKlick, true);
       });
+      return entwaffnen;
+    }
+    // Baut einen Chip für einen eigenen Tag. Normaler Klick: wählen/abwählen. Langes Drücken: siehe tagLoeschbarMachen.
+    function eigenerTagChip(t, aktiv, onToggle, onGeloescht, extraKlasse) {
+      const c = el("button", "chip ohne-icon" + (extraKlasse ? " " + extraKlasse : "") + (aktiv ? " aktiv" : ""), t.name);
+      c.type = "button";
+      const entwaffnen = tagLoeschbarMachen(c, t.id, onGeloescht);
+      c.onclick = () => { if (c.classList.contains("chip-loeschen")) { entwaffnen(); return; } onToggle(); };
       return c;
+    }
+    // Baut ein reines Anzeige-Tag (z. B. auf Outfit-/Teil-Karten) mit derselben Lösch-Geste.
+    function eigenerTagPill(t) {
+      const span = el("span", "tag eigen", t.name);
+      tagLoeschbarMachen(span, t.id, () => span.remove());
+      return span;
     }
     // Ruft callback(e) auf, wenn element lange gedrückt/getippt wird (nicht bei normalem Klick).
     function langDruck(element, callback, dauer) {
@@ -811,7 +938,7 @@
         tg.append(icon(w), document.createTextNode(w));
         box.appendChild(tg);
       });
-      (obj.tags || []).forEach((x) => { const n = tagName(x); if (n) box.appendChild(el("span", "tag eigen", n)); });
+      (obj.tags || []).forEach((x) => { const n = tagName(x); if (n) box.appendChild(eigenerTagPill({ id: x, name: n })); });
       return box;
     }
     // Auswahl eigener Tags mit tertiärem «+ Neuer Tag»-Knopf zum Erstellen
@@ -1410,9 +1537,7 @@
         leer.appendChild(b);
         inhalt.appendChild(leer);
       } else {
-        const rk = el("div", "reihen-kopf");
-        rk.append(el("h2", "title-italic", "Getragene Outfits"), el("span", "caption", outfits.length + (outfits.length === 1 ? " Look" : " Looks")));
-        inhalt.appendChild(rk);
+        inhalt.appendChild(el("p", "caption", outfits.length + (outfits.length === 1 ? " Look" : " Looks")));
         outfits.forEach((o) => inhalt.appendChild(lookKarte(o, inkFuerOutfit(o))));
       }
       return s;
@@ -1676,13 +1801,18 @@
       cb.onchange = zeigen;
       async function gewaehlt(e) {
         const datei = e.target.files && e.target.files[0];
+        e.target.value = "";
         if (!datei) return;
+        let roh;
+        try { roh = await fotoLaden(datei); } catch (f) { toast(f.message); return; }
+        const zugeschnitten = await fotoZuschneiden(roh);
+        if (!zugeschnitten) return;
         b1.disabled = true; b2.disabled = true;
         let status = null;
         if (freistellen) { status = el("p", "klein gedaempft", "Wird freigestellt …"); box.appendChild(status); }
         try {
-          if (freistellen) ergebnis = await fotoFuerTeil(datei, (text) => { if (status) status.textContent = text; });
-          else ergebnis = { normal: await fotoVerkleinern(datei), frei: null };
+          if (freistellen) ergebnis = await fotoFuerTeil(zugeschnitten, (text) => { if (status) status.textContent = text; });
+          else ergebnis = { normal: fotoVerkleinern(zugeschnitten), frei: null };
           schalter.classList.toggle("verborgen", !ergebnis.frei);
           zeigen();
         } catch (f) { toast(f.message); }
