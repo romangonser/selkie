@@ -153,9 +153,9 @@
     .chip.ohne-icon { padding: 0 14px; }
     .chip.aktiv { background: var(--ink); color: var(--white); }
     .chip.wetter.aktiv { background: var(--lavender-hell); color: var(--ink); border-color: var(--lavender); }
-    .chip.chip-loeschen, .tag.chip-loeschen { border-color: var(--rose); }
+    .chip.chip-loeschen, .tag.chip-loeschen { border-color: var(--red); }
     .chip-loeschen-x { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%;
-      background: var(--rose); color: var(--ink); display: flex; align-items: center; justify-content: center;
+      background: var(--red); color: var(--white); display: flex; align-items: center; justify-content: center;
       font-size: 14px; line-height: 1; }
     .popup-hg { position: fixed; inset: 0; z-index: 70; background: rgba(9, 21, 22, 0.45); display: flex; align-items: center; justify-content: center; padding: var(--space-l); }
     .popup { width: 100%; max-width: 340px; background: var(--bg-app); border-radius: 14px; border: 1px solid var(--ink); padding: var(--space-l); display: flex; flex-direction: column; gap: 14px; }
@@ -176,6 +176,16 @@
     .crop-fuss .btn { flex: 1; }
     .crop-fuss .btn { background: var(--white); color: var(--ink); border-color: var(--white); }
     .crop-fuss .btn.outline { background: transparent; color: var(--white); border-color: var(--white); }
+    .lade-reihe { display: flex; align-items: center; gap: 10px; }
+    .lade-spinner { width: 26px; height: 26px; flex: none; animation: lade-dreh 2s linear infinite; }
+    .lade-spinner-spur { fill: none; stroke: var(--linie); stroke-width: 4; }
+    .lade-spinner-bogen { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; animation: lade-bogen 1.5s ease-in-out infinite; }
+    @keyframes lade-dreh { to { transform: rotate(360deg); } }
+    @keyframes lade-bogen {
+      0% { stroke-dasharray: 1 175; stroke-dashoffset: 0; }
+      50% { stroke-dasharray: 89 175; stroke-dashoffset: -35; }
+      100% { stroke-dasharray: 89 175; stroke-dashoffset: -124; }
+    }
     .btn-tertiaer { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border: 0; background: none; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
     .btn-tertiaer:active { opacity: 0.6; }
     .tag-form { display: flex; align-items: center; gap: 6px; width: 100%; }
@@ -523,6 +533,21 @@
     }
     // Lässt den Nutzer ein aufgenommenes/ausgewähltes Foto zuschneiden, bevor es weiterverarbeitet wird.
     // Gibt ein zugeschnittenes Canvas zurück, oder null bei Abbruch.
+    // Kleiner SVG-Spinner (rotierender Bogen über einer dünnen Spur) fürs Warten, z. B. beim Freistellen.
+    function ladeSpinner() {
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("viewBox", "0 0 64 64");
+      svg.setAttribute("class", "lade-spinner");
+      const spur = document.createElementNS(NS, "circle");
+      spur.setAttribute("class", "lade-spinner-spur");
+      spur.setAttribute("cx", "32"); spur.setAttribute("cy", "32"); spur.setAttribute("r", "28");
+      const bogen = document.createElementNS(NS, "circle");
+      bogen.setAttribute("class", "lade-spinner-bogen");
+      bogen.setAttribute("cx", "32"); bogen.setAttribute("cy", "32"); bogen.setAttribute("r", "28");
+      svg.append(spur, bogen);
+      return svg;
+    }
     function fotoZuschneiden(img) {
       return new Promise((resolve) => {
         const hg = el("div", "crop-hg");
@@ -1808,10 +1833,15 @@
         const zugeschnitten = await fotoZuschneiden(roh);
         if (!zugeschnitten) return;
         b1.disabled = true; b2.disabled = true;
-        let status = null;
-        if (freistellen) { status = el("p", "klein gedaempft", "Wird freigestellt …"); box.appendChild(status); }
+        let status = null, statusText = null;
+        if (freistellen) {
+          status = el("div", "lade-reihe");
+          statusText = el("span", "klein gedaempft", "Wird freigestellt …");
+          status.append(ladeSpinner(), statusText);
+          box.appendChild(status);
+        }
         try {
-          if (freistellen) ergebnis = await fotoFuerTeil(zugeschnitten, (text) => { if (status) status.textContent = text; });
+          if (freistellen) ergebnis = await fotoFuerTeil(zugeschnitten, (text) => { if (statusText) statusText.textContent = text; });
           else ergebnis = { normal: fotoVerkleinern(zugeschnitten), frei: null };
           schalter.classList.toggle("verborgen", !ergebnis.frei);
           zeigen();
