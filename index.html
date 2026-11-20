@@ -147,18 +147,25 @@
     .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--space-l) * -1); padding: 0 var(--space-l); }
     .chips::-webkit-scrollbar { display: none; }
     .chips.umbruch { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
-    .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px;
+    .chip { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 10px; border-radius: 999px;
       border: 1px solid var(--border-strong); background: transparent; font-size: 13px; font-weight: 500; white-space: nowrap; }
     .chip.ohne-icon { padding: 0 14px; }
     .chip.aktiv { background: var(--ink); color: var(--white); }
     .chip.wetter.aktiv { background: var(--lavender-hell); color: var(--ink); border-color: var(--lavender); }
+    .chip.chip-loeschen { border-color: var(--red); }
+    .chip-loeschen-x { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--red); color: var(--white); display: flex; align-items: center; justify-content: center;
+      font-size: 14px; line-height: 1; }
+    .popup-hg { position: fixed; inset: 0; z-index: 70; background: rgba(9, 21, 22, 0.45); display: flex; align-items: center; justify-content: center; padding: var(--space-l); }
+    .popup { width: 100%; max-width: 340px; background: var(--bg-app); border-radius: 14px; border: 1px solid var(--ink); padding: var(--space-l); display: flex; flex-direction: column; gap: 14px; }
+    .popup .display { font-size: 22px; }
     .btn-tertiaer { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border: 0; background: none; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
     .btn-tertiaer:active { opacity: 0.6; }
     .tag-form { display: flex; align-items: center; gap: 6px; width: 100%; }
     .tag-form input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 999px; background: var(--white); font-size: 15px; }
     .tag-form input:focus { outline: 2px solid var(--ochre); outline-offset: 1px; }
     .tag-form .icon-btn { width: 36px; height: 36px; }
-    .tag.eigen { border-style: dashed; padding-left: 8px; }
+    .tag.eigen { padding-left: 8px; }
     .chip-gruppe { display: flex; flex-direction: column; gap: 10px; }
 
     /* Kategorie-Kacheln mit grossen Icons */
@@ -271,8 +278,8 @@
     .foto-wahl .btn-reihe { position: relative; z-index: 2; }
     .foto-wahl > .klein { padding: 0 16px; text-align: center; }
     .foto-wahl.hat-bild .btn-reihe { position: absolute; bottom: 10px; right: 10px; }
-    .detail-bild { aspect-ratio: 1; background: var(--blush-hell); border: 1px solid var(--border-subtle); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
-    .detail-bild img { max-width: 80%; max-height: 80%; object-fit: contain; }
+    .detail-bild { height: min(42dvh, 360px); background: var(--blush-hell); border: 1px solid var(--border-subtle); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .detail-bild img { width: auto; height: auto; max-width: 80%; max-height: 80%; object-fit: contain; }
     .liste-zeile { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
     .figur-wahl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .figur { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--white); }
@@ -309,6 +316,7 @@
   <div id="app"><div class="lade">Selkie …</div></div>
 
   <script src="assets/vorlagen.js"></script>
+  <script src="freistellen.js"></script>
   <script>
     "use strict";
 
@@ -481,54 +489,15 @@
     async function fotoVerkleinern(datei, max) {
       return alsDataUrl(leinwand(await fotoLaden(datei), max || 800, true), false);
     }
-    // Hintergrund entfernen: Alles, was vom Rand her ähnlich gefärbt ist wie der Rand, wird durchsichtig.
-    // Funktioniert gut bei Fotos vor einer hellen, einfarbigen Fläche (Bett, Wand, Boden).
-    function hintergrundEntfernen(c) {
-      const w = c.width, h = c.height, ctx = c.getContext("2d");
-      const bild = ctx.getImageData(0, 0, w, h), p = bild.data;
-      let r = 0, g = 0, b = 0, n = 0;
-      const rand = [];
-      for (let x = 0; x < w; x++) { rand.push(x, x + (h - 1) * w); }
-      for (let y = 0; y < h; y++) { rand.push(y * w, y * w + w - 1); }
-      rand.forEach((i) => { r += p[i * 4]; g += p[i * 4 + 1]; b += p[i * 4 + 2]; n++; });
-      r /= n; g /= n; b /= n;
-      const tol = 52 * 52;
-      const nah = (i) => { const dr = p[i * 4] - r, dg = p[i * 4 + 1] - g, db = p[i * 4 + 2] - b; return dr * dr + dg * dg + db * db < tol; };
-      const weg = new Uint8Array(w * h);
-      const stapel = [];
-      rand.forEach((i) => { if (!weg[i] && nah(i)) { weg[i] = 1; stapel.push(i); } });
-      while (stapel.length) {
-        const i = stapel.pop(), x = i % w;
-        const nb = [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w];
-        for (const j of nb) if (j >= 0 && j < w * h && !weg[j] && nah(j)) { weg[j] = 1; stapel.push(j); }
-      }
-      let anzahl = 0;
-      for (let i = 0; i < w * h; i++) anzahl += weg[i];
-      const anteil = anzahl / (w * h);
-      if (anteil < 0.08 || anteil > 0.95) return false;   // kein klarer Hintergrund erkennbar
-      for (let i = 0; i < w * h; i++) {
-        if (weg[i]) { p[i * 4 + 3] = 0; continue; }
-        const x = i % w;
-        if ((x > 0 && weg[i - 1]) || (x < w - 1 && weg[i + 1]) || (i >= w && weg[i - w]) || (i < w * (h - 1) && weg[i + w])) p[i * 4 + 3] = 150;
-      }
-      ctx.putImageData(bild, 0, 0);
-      // auf den Inhalt zuschneiden
-      let x0 = w, y0 = h, x1 = 0, y1 = 0;
-      for (let i = 0; i < w * h; i++) if (!weg[i]) { const x = i % w, y = (i / w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-      const pad = 8;
-      x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
-      const z = document.createElement("canvas");
-      z.width = x1 - x0 + 1; z.height = y1 - y0 + 1;
-      z.getContext("2d").drawImage(c, x0, y0, z.width, z.height, 0, 0, z.width, z.height);
-      return z;
-    }
-    async function fotoFuerTeil(datei) {
+    // Hintergrund-Freistellung: KI-Modell (IS-Net, onnxruntime-web, läuft im Browser), siehe freistellen.js.
+    // Fällt automatisch auf eine einfache Randfarben-Methode zurück, wenn das Modell nicht geladen werden kann.
+    async function fotoFuerTeil(datei, fortschritt) {
       const img = await fotoLaden(datei);
       const normal = alsDataUrl(leinwand(img, 800, true), false);
       let frei = null;
       try {
-        const z = hintergrundEntfernen(leinwand(img, 700, false));
-        if (z) frei = alsDataUrl(z, true);
+        const erg = await Freisteller.freistellen(img, { fortschritt });
+        if (erg) frei = erg.dataUrl;
       } catch (f) { frei = null; }
       return { normal, frei };
     }
@@ -744,6 +713,97 @@
     // ---------- Eigene Tags (z. B. «Büro», «Party», «Ferien») ----------
     function eigeneTags() { return liste(daten.eigeneTags).sort((a, b) => a.name.localeCompare(b.name, "de")); }
     function tagName(tid) { return daten.eigeneTags && daten.eigeneTags[tid] ? daten.eigeneTags[tid].name : null; }
+    // Wo ein Tag gerade verwendet wird (für den Löschen-Hinweis).
+    function tagVerwendungText(tid) {
+      const teile = Object.values(daten.teile || {}).filter((t) => (t.tags || []).includes(tid)).length;
+      const outfits = Object.values(daten.outfits || {}).filter((o) => (o.tags || []).includes(tid)).length;
+      const teile_ = [];
+      if (teile) teile_.push(teile + (teile === 1 ? " Teil" : " Teile"));
+      if (outfits) teile_.push(outfits + (outfits === 1 ? " Outfit" : " Outfits"));
+      return teile_.length ? "Wird aktuell bei " + teile_.join(" und ") + " verwendet." : "Wird aktuell nirgends verwendet.";
+    }
+    // Schlankes, nicht einschiebendes Popup (kein Sheet-Slide-in) zum Bestätigen des Tag-Löschens.
+    function tagLoeschenBestaetigen(tid) {
+      const name = tagName(tid);
+      if (!name) return Promise.resolve(false);
+      return new Promise((resolve) => {
+        const hg = el("div", "popup-hg");
+        const box = el("div", "popup");
+        box.append(
+          el("h3", "display", "«" + name + "» löschen?"),
+          el("p", "klein gedaempft", tagVerwendungText(tid)),
+        );
+        const reihe = el("div", "btn-reihe");
+        const abbrechen = el("button", "btn outline", "Abbrechen");
+        const loeschenBtn = el("button", "btn gefahr", "Löschen");
+        reihe.append(abbrechen, loeschenBtn);
+        box.appendChild(reihe);
+        hg.appendChild(box);
+        const schliessen = (ergebnis) => { hg.remove(); resolve(ergebnis); };
+        abbrechen.onclick = () => schliessen(false);
+        loeschenBtn.onclick = () => schliessen(true);
+        hg.addEventListener("click", (e) => { if (e.target === hg) schliessen(false); });
+        document.body.appendChild(hg);
+      });
+    }
+    // Löscht einen eigenen Tag überall: aus der Liste, aus allen Teilen/Outfits und aus dem aktiven Filter.
+    function tagLoeschenAusfuehren(tid) {
+      delete daten.eigeneTags[tid];
+      speichern("eigeneTags/" + tid, null);
+      [["teile", daten.teile], ["outfits", daten.outfits]].forEach(([pfad, sammlung]) => {
+        Object.keys(sammlung || {}).forEach((oid) => {
+          const o = sammlung[oid];
+          if (!(o.tags || []).includes(tid)) return;
+          o.tags = o.tags.filter((x) => x !== tid);
+          speichern(pfad + "/" + oid, o);
+        });
+      });
+      if ((ui.filter.tags || []).includes(tid)) ui.filter.tags = ui.filter.tags.filter((x) => x !== tid);
+      toast("Tag gelöscht.");
+    }
+    // Baut einen Chip für einen eigenen Tag. Normaler Klick: wählen/abwählen. Langes Drücken: Chip
+    // wird «scharf» (roter Rand + ×-Knopf). Klick daneben: wieder normal. Klick auf ×: Löschen bestätigen.
+    function eigenerTagChip(t, aktiv, onToggle, onGeloescht, extraKlasse) {
+      const c = el("button", "chip ohne-icon" + (extraKlasse ? " " + extraKlasse : "") + (aktiv ? " aktiv" : ""), t.name);
+      c.type = "button";
+      let badge = null;
+      function aussenKlick(e) { if (!c.contains(e.target)) entwaffnen(); }
+      function entwaffnen() {
+        c.classList.remove("chip-loeschen");
+        if (badge) { badge.remove(); badge = null; }
+        document.removeEventListener("pointerdown", aussenKlick, true);
+      }
+      c.onclick = () => { if (badge) { entwaffnen(); return; } onToggle(); };
+      langDruck(c, () => {
+        if (badge) return;
+        c.classList.add("chip-loeschen");
+        badge = el("span", "chip-loeschen-x", "×");
+        badge.onclick = async (e) => {
+          e.stopPropagation();
+          const sicher = await tagLoeschenBestaetigen(t.id);
+          entwaffnen();
+          if (sicher) { tagLoeschenAusfuehren(t.id); onGeloescht(); }
+        };
+        c.appendChild(badge);
+        document.addEventListener("pointerdown", aussenKlick, true);
+      });
+      return c;
+    }
+    // Ruft callback(e) auf, wenn element lange gedrückt/getippt wird (nicht bei normalem Klick).
+    function langDruck(element, callback, dauer) {
+      let timer = null, ausgeloest = false;
+      const start = (e) => {
+        ausgeloest = false;
+        timer = setTimeout(() => { ausgeloest = true; callback(e); }, dauer || 550);
+      };
+      const stop = () => { clearTimeout(timer); };
+      element.addEventListener("pointerdown", start);
+      element.addEventListener("pointerup", stop);
+      element.addEventListener("pointerleave", stop);
+      element.addEventListener("pointercancel", stop);
+      element.addEventListener("contextmenu", (e) => { if (ausgeloest) e.preventDefault(); });
+      element.addEventListener("click", (e) => { if (ausgeloest) { e.preventDefault(); e.stopPropagation(); ausgeloest = false; } }, true);
+    }
     function tagPills(obj) {
       const box = el("div", "tags");
       (obj.wetter || []).concat(obj.temperatur || []).forEach((w) => {
@@ -762,9 +822,15 @@
         box.innerHTML = "";
         eigeneTags().forEach((t) => {
           const an = wert.includes(t.id);
-          const c = el("button", "chip ohne-icon" + (an ? " aktiv" : ""), t.name);
-          c.type = "button";
-          c.onclick = () => { wert = an ? wert.filter((x) => x !== t.id) : wert.concat(t.id); onChange(wert); zeichnen(); };
+          const c = eigenerTagChip(t, an, () => {
+            wert = an ? wert.filter((x) => x !== t.id) : wert.concat(t.id);
+            onChange(wert);
+            zeichnen();
+          }, () => {
+            wert = wert.filter((x) => x !== t.id);
+            onChange(wert);
+            zeichnen();
+          });
           box.appendChild(c);
         });
         if (!formOffen) {
@@ -1265,12 +1331,11 @@
       });
       eigeneTags().forEach((t) => {
         const an = (ui.filter.tags || []).includes(t.id);
-        const c = el("button", "chip wetter ohne-icon" + (an ? " aktiv" : ""), t.name);
-        c.onclick = () => {
+        const c = eigenerTagChip(t, an, () => {
           const l = ui.filter.tags || [];
           ui.filter.tags = an ? l.filter((x) => x !== t.id) : l.concat(t.id);
           anzeigen();
-        };
+        }, anzeigen, "wetter");
         box.appendChild(c);
       });
       return box;
@@ -1348,9 +1413,16 @@
         const rk = el("div", "reihen-kopf");
         rk.append(el("h2", "title-italic", "Getragene Outfits"), el("span", "caption", outfits.length + (outfits.length === 1 ? " Look" : " Looks")));
         inhalt.appendChild(rk);
-        outfits.forEach((o, i) => inhalt.appendChild(lookKarte(o, i % 2 === 1)));
+        outfits.forEach((o) => inhalt.appendChild(lookKarte(o, inkFuerOutfit(o))));
       }
       return s;
+    }
+
+    function inkFuerOutfit(o) {
+      const s = o.id || "";
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+      return h % 2 === 1;
     }
 
     function lookKarte(o, ink) {
@@ -1471,7 +1543,23 @@
         el("p", "klein gedaempft", "Der Filter gilt nur für Dress Me."),
       );
       if (eigeneTags().length) {
-        const tg = gruppe("Eigene Tags", auswahlChips(eigeneTags().map((t) => ({ id: t.id, name: t.name, icon: false })), neu.tags, true, (v) => { neu.tags = v; }));
+        const box = el("div", "chips umbruch");
+        function zeichnen() {
+          box.innerHTML = "";
+          eigeneTags().forEach((t) => {
+            const an = neu.tags.includes(t.id);
+            const c = eigenerTagChip(t, an, () => {
+              neu.tags = an ? neu.tags.filter((x) => x !== t.id) : neu.tags.concat(t.id);
+              zeichnen();
+            }, () => {
+              neu.tags = neu.tags.filter((x) => x !== t.id);
+              zeichnen();
+            });
+            box.appendChild(c);
+          });
+        }
+        zeichnen();
+        const tg = gruppe("Eigene Tags", box);
         inhalt.insertBefore(tg, inhalt.lastChild);
       }
       const reihe = el("div", "btn-reihe");
@@ -1571,6 +1659,7 @@
       const cb = el("input"); cb.type = "checkbox"; cb.checked = true; cb.style.cssText = "width:22px;height:22px;accent-color:#091516";
       schalter.append(el("span", "klein", "Hintergrund automatisch entfernen"), cb);
       huelle.appendChild(schalter);
+      if (freistellen) Freisteller.vorladen();
       let ergebnis = null;
       function zeigen() {
         if (!ergebnis) return;
@@ -1588,12 +1677,16 @@
       async function gewaehlt(e) {
         const datei = e.target.files && e.target.files[0];
         if (!datei) return;
+        b1.disabled = true; b2.disabled = true;
+        let status = null;
+        if (freistellen) { status = el("p", "klein gedaempft", "Wird freigestellt …"); box.appendChild(status); }
         try {
-          if (freistellen) ergebnis = await fotoFuerTeil(datei);
+          if (freistellen) ergebnis = await fotoFuerTeil(datei, (text) => { if (status) status.textContent = text; });
           else ergebnis = { normal: await fotoVerkleinern(datei), frei: null };
           schalter.classList.toggle("verborgen", !ergebnis.frei);
           zeigen();
         } catch (f) { toast(f.message); }
+        finally { b1.disabled = false; b2.disabled = false; if (status) status.remove(); }
       }
       kamera.onchange = gewaehlt;
       galerie.onchange = gewaehlt;

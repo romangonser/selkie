@@ -8,9 +8,10 @@ const ROOT = path.resolve(__dirname, '..');
 const PORT = 5500;
 
 const TYPES = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.webp': 'image/webp', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json',
+  '.wasm': 'application/wasm', '.bin': 'application/octet-stream',
 };
 
 http.createServer((req, res) => {
